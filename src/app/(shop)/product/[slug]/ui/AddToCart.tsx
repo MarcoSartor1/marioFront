@@ -18,10 +18,12 @@ export const AddToCart = ({ product }: Props) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [posted, setPosted] = useState(false);
 
+  const hasSizes = product.sizes.length > 0;
+
   const addToCart = () => {
     setPosted(true);
 
-    if (!size) return;
+    if (hasSizes && !size) return;
 
     const cartProduct: CartProduct = {
       id: product.id,
@@ -29,7 +31,7 @@ export const AddToCart = ({ product }: Props) => {
       title: product.title,
       price: product.price,
       quantity: quantity,
-      size: size,
+      size: size!,
       image: product.images[0]
     }
 
@@ -37,25 +39,25 @@ export const AddToCart = ({ product }: Props) => {
     setPosted(false);
     setQuantity(1);
     setSize(undefined);
-
-
   };
 
 
   return (
     <>
-      {posted && !size && (
+      {posted && hasSizes && !size && (
         <span className="mt-2 text-red-500 fade-in">
           Debe de seleccionar una talla*
         </span>
       )}
 
       {/* Selector de Tallas */}
-      <SizeSelector
-        selectedSize={size}
-        availableSizes={product.sizes}
-        onSizeChanged={setSize}
-      />
+      {hasSizes && (
+        <SizeSelector
+          selectedSize={size}
+          availableSizes={product.sizes}
+          onSizeChanged={setSize}
+        />
+      )}
 
       {/* Selector de Cantidad */}
       <QuantitySelector quantity={quantity} onQuantityChanged={setQuantity} />

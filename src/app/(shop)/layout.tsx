@@ -1,4 +1,4 @@
-import { Footer, Sidebar, TopMenu } from '@/components';
+import { Footer, Sidebar, TopMenuWrapper } from '@/components';
 
 export default function ShopLayout( { children }: {
   children: React.ReactNode;
@@ -6,7 +6,7 @@ export default function ShopLayout( { children }: {
   return (
     <main className="min-h-screen">
 
-      <TopMenu />
+      <TopMenuWrapper />
       <Sidebar />
 
       <div className="px-0 sm:px-10">

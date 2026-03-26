@@ -1,13 +1,14 @@
 'use server';
 
-import prisma from '@/lib/prisma';
+import { auth } from '@/auth.config';
 import { revalidatePath } from 'next/cache';
-import { Gender, Product, Size } from '@prisma/client';
 import { z } from 'zod';
-import {v2 as cloudinary} from 'cloudinary';
-cloudinary.config( process.env.CLOUDINARY_URL ?? '' );
-
-
+import { v2 as cloudinary } from 'cloudinary';
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const productSchema = z.object({
   id: z.string().uuid().optional().nullable(),
@@ -17,157 +18,116 @@ const productSchema = z.object({
   price: z.coerce
     .number()
     .min(0)
-    .transform( val => Number(val.toFixed(2)) ),
+    .transform((val) => Number(val.toFixed(2))),
   inStock: z.coerce
     .number()
     .min(0)
-    .transform( val => Number(val.toFixed(0)) ),
-  categoryId: z.string().uuid(),
-  sizes: z.coerce.string().transform( val => val.split(',') ),
-  tags: z.string(),
-  gender: z.nativeEnum(Gender), 
+    .transform((val) => Number(val.toFixed(0))),
+  categoryId: z.string().uuid().optional().nullable(),
+  sizes: z.string().optional().transform((val) => (val ? val.split(',').filter(Boolean) : [])),
+  tags: z.string().optional().default(''),
+  gender: z.enum(['men', 'women', 'kid', 'unisex']).optional().nullable(),
 });
 
+export const createUpdateProduct = async (formData: FormData) => {
+  const data = Object.fromEntries(formData);
+  const productParsed = productSchema.safeParse(data);
 
-
-
-
-
-
-export const createUpdateProduct = async( formData: FormData ) => {
-
-  const data = Object.fromEntries( formData );
-  const productParsed = productSchema.safeParse( data );
-
-  if ( !productParsed.success) {
-    console.log( productParsed.error );
-    return { ok: false }
+  if (!productParsed.success) {
+    console.log(productParsed.error);
+    return { ok: false };
   }
 
   const product = productParsed.data;
-  product.slug = product.slug.toLowerCase().replace(/ /g, '-' ).trim();
-
+  product.slug = product.slug.toLowerCase().replace(/ /g, '-').trim();
 
   const { id, ...rest } = product;
+  const tagsArray = rest.tags
+    ? rest.tags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean)
+    : [];
+
+  const session = await auth();
+  const token = (session?.user as any)?.token as string | undefined;
 
   try {
-    const prismaTx = await prisma.$transaction( async (tx) => {
-  
-      let product: Product;
-      const tagsArray = rest.tags.split(',').map( tag => tag.trim().toLowerCase() );
-  
-      if ( id ) {
-        // Actualizar
-        product = await prisma.product.update({
-          where: { id },
-          data: {
-            ...rest,
-            sizes: {
-              set: rest.sizes as Size[],
-            },
-            tags: {
-              set: tagsArray
-            }
-          }
-        });
-  
-      } else {
-        // Crear
-        product = await prisma.product.create({
-          data: {
-            ...rest,
-            sizes: {
-              set: rest.sizes as Size[],
-            },
-            tags: {
-              set: tagsArray
-            }
-          }
-        })
+    // Subir imágenes a Cloudinary
+    const imageFiles = formData.getAll('images') as File[];
+    const validFiles = imageFiles.filter((f) => f.size > 0);
+    const uploadedImages = validFiles.length > 0 ? await uploadImages(validFiles) : [];
+
+    if (uploadedImages === null) {
+      return { ok: false, message: 'No se pudo cargar las imágenes' };
+    }
+
+    const body: Record<string, unknown> = {
+      title: rest.title,
+      slug: rest.slug,
+      description: rest.description,
+      price: rest.price,
+      inStock: rest.inStock,
+    };
+
+    if (rest.categoryId) body.categoryId = rest.categoryId;
+    if (rest.sizes && rest.sizes.length > 0) body.sizes = rest.sizes;
+    if (tagsArray.length > 0) body.tags = tagsArray;
+    if (rest.gender) body.gender = rest.gender;
+    if (uploadedImages.length > 0) body.images = uploadedImages.filter(Boolean);
+
+    console.log('=== createUpdateProduct - body enviado al backend ===');
+    console.log(JSON.stringify(body, null, 2));
+    console.log('URL:', `${process.env.API_URL}/products${id ? `/${id}` : ''}`);
+    console.log('Método:', id ? 'PATCH' : 'POST');
+    console.log('=====================================================');
+
+    const resp = await fetch(
+      `${process.env.API_URL}/products${id ? `/${id}` : ''}`,
+      {
+        method: id ? 'PATCH' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
       }
-  
-      
-      // Proceso de carga y guardado de imagenes
-      // Recorrer las imagenes y guardarlas
-      if ( formData.getAll('images') ) {
-        // [https://url.jpg, https://url.jpg]
-        const images = await uploadImages(formData.getAll('images') as File[]);
-        if ( !images ) {
-          throw new Error('No se pudo cargar las imágenes, rollingback');
-        }
+    );
 
-        await prisma.productImage.createMany({
-          data: images.map( image => ({
-            url: image!,
-            productId: product.id,
-          }))
-        });
+    if (!resp.ok) {
+      const error = await resp.json().catch(() => ({}));
+      console.log(error);
+      return { ok: false, message: error.message ?? 'No se pudo actualizar/crear' };
+    }
 
-      }
-  
-  
-  
-      
-      return {
-        product
-      }
-    });
+    const savedProduct = await resp.json();
 
-
-    // Todo: RevalidatePaths
     revalidatePath('/admin/products');
-    revalidatePath(`/admin/product/${ product.slug }`);
-    revalidatePath(`/products/${ product.slug }`);
+    revalidatePath(`/admin/product/${savedProduct.slug}`);
+    revalidatePath(`/products/${savedProduct.slug}`);
 
-
-    return {
-      ok: true,
-      product: prismaTx.product,
-    }
-
-    
+    return { ok: true, product: savedProduct };
   } catch (error) {
-    
-    return {
-      ok: false,
-      message: 'Revisar los logs, no se pudo actualizar/crear'
-    }
+    console.log(error);
+    return { ok: false, message: 'Revisar los logs, no se pudo actualizar/crear' };
   }
+};
 
-}
-
-
-
-const uploadImages = async( images: File[] ) => {
-
+const uploadImages = async (images: File[]) => {
   try {
-
-    const uploadPromises = images.map( async( image) => {
-
+    const uploadPromises = images.map(async (image) => {
       try {
         const buffer = await image.arrayBuffer();
         const base64Image = Buffer.from(buffer).toString('base64');
-  
-        return cloudinary.uploader.upload(`data:image/png;base64,${ base64Image }`)
-          .then( r => r.secure_url );
-        
+        return cloudinary.uploader
+          .upload(`data:image/png;base64,${base64Image}`)
+          .then((r) => r.secure_url);
       } catch (error) {
         console.log(error);
         return null;
       }
-    })
+    });
 
-
-    const uploadedImages = await Promise.all( uploadPromises );
-    return uploadedImages;
-
-
+    return await Promise.all(uploadPromises);
   } catch (error) {
-
     console.log(error);
     return null;
-    
   }
-
-
-}
+};

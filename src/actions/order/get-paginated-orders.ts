@@ -1,39 +1,23 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import prisma from '@/lib/prisma';
+import { apiGet } from '@/lib/api';
 
-
-
-export const getPaginatedOrders = async() => {
-
+export const getPaginatedOrders = async () => {
   const session = await auth();
 
-  if ( session?.user.role !== 'admin'  ) {
+  if (session?.user.role !== 'admin') {
     return {
       ok: false,
-      message: 'Debe de estar autenticado'
-    }
+      message: 'Debe de estar autenticado',
+    };
   }
 
-  const orders = await prisma.order.findMany({
-    orderBy: {
-      createdAt: 'desc'
-    },
-    include: {
-      OrderAddress: {
-        select: {
-          firstName: true,
-          lastName: true
-        }
-      }
-    }
-  })
-
-  return {
-    ok: true,
-    orders: orders,
+  try {
+    const orders = await apiGet<any[]>('/orders');
+    return { ok: true, orders };
+  } catch (error) {
+    console.log(error);
+    return { ok: false, message: 'No se pudieron cargar las órdenes' };
   }
-
-
-}
+};

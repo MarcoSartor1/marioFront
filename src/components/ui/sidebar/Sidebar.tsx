@@ -5,6 +5,8 @@ import clsx from "clsx";
 import { useSession } from "next-auth/react";
 import {
   IoCloseOutline,
+  IoCloudUploadOutline,
+  IoListOutline,
   IoLogInOutline,
   IoLogOutOutline,
   IoPeopleOutline,
@@ -43,7 +45,7 @@ export const Sidebar = () => {
       {/* Sidemenu */}
       <nav
         className={clsx(
-          "fixed p-5 right-0 top-0 w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300",
+          "fixed p-5 right-0 top-0 w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300 flex flex-col",
           {
             "translate-x-full": !isSideMenuOpen,
           }
@@ -56,7 +58,7 @@ export const Sidebar = () => {
         />
 
         {/* Input */}
-        <div className="relative mt-14">
+        <div className="relative mt-14 shrink-0">
           <IoSearchOutline size={20} className="absolute top-2 left-2" />
           <input
             type="text"
@@ -66,6 +68,7 @@ export const Sidebar = () => {
         </div>
 
         {/* Menú */}
+        <div className="overflow-y-auto flex-1 pb-5">
 
         {isAuthenticated && (
           <>
@@ -125,6 +128,15 @@ export const Sidebar = () => {
             </Link>
 
             <Link
+              href="/admin/products/bulk-upload"
+              onClick={() => closeMenu()}
+              className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              <IoCloudUploadOutline size={30} />
+              <span className="ml-3 text-xl">Carga masiva</span>
+            </Link>
+
+            <Link
               href="/admin/orders"
               onClick={() => closeMenu()}
               className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
@@ -141,8 +153,18 @@ export const Sidebar = () => {
               <IoPeopleOutline size={30} />
               <span className="ml-3 text-xl">Usuarios</span>
             </Link>
+
+            <Link
+              href="/admin/categories"
+              onClick={() => closeMenu()}
+              className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              <IoListOutline size={30} />
+              <span className="ml-3 text-xl">Categorías</span>
+            </Link>
           </>
         )}
+        </div>
       </nav>
     </div>
   );

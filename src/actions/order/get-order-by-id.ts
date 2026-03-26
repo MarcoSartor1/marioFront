@@ -1,81 +1,32 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import prisma from '@/lib/prisma';
+import { apiGet } from '@/lib/api';
 
-
-
-export const getOrderById = async( id: string ) => {
-
+export const getOrderById = async (id: string) => {
   const session = await auth();
 
-  if ( !session?.user ) {
+  if (!session?.user) {
     return {
       ok: false,
-      message: 'Debe de estar autenticado'
-    }
+      message: 'Debe de estar autenticado',
+    };
   }
 
-
   try {
-    
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        OrderAddress: true,
-        OrderItem: {
-          select: {
-            price: true,
-            quantity: true,
-            size: true,
+    const order = await apiGet<any>(`/orders/${id}`);
 
-            product: {
-              select: {
-                title: true,
-                slug: true,
-
-                ProductImage: {
-                  select: {
-                    url: true
-                  },
-                  take: 1
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if( !order ) throw `${ id } no existe`;
-
-    if ( session.user.role === 'user' ) {
-      if ( session.user.id !== order.userId ) {
-        throw `${ id } no es de ese usuario`
-      }
-    }
-
-
+    if (!order) throw new Error(`${id} no existe`);
 
     return {
       ok: true,
-      order: order,
-    }
-
-
+      order,
+    };
   } catch (error) {
-
     console.log(error);
-
     return {
       ok: false,
-      message: 'Orden no existe'
-    }
-
-
+      message: 'Orden no existe',
+    };
   }
-
-
-
-
-}
+};

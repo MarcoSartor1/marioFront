@@ -3,19 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --primary: #274494;
+  /* Colores dinámicos para White Label */
+  --primary: #274494; /* Tu color actual por defecto */
+  --primary-foreground: #111010;
+  --secondary: #0b54e5;
+  --secondary-foreground: #111827;
+
+  /* Variables de Next.js originales (ajustadas para convivir) */
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
 }
-/* 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-} */ 
+
+/* Soporte para Dark Mode manual (clase .dark) */
+.dark {
+  --primary: #3b82f6; /* Azul un poco más claro para dark mode */
+  --primary-foreground: #ffffff;
+  --secondary: #1f2937;
+  --secondary-foreground: #3191f2;
+
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 2, 6, 23;
+  --background-end-rgb: 2, 6, 23;
+}
 
 body {
   color: rgb(var(--foreground-rgb));
@@ -23,45 +33,36 @@ body {
       to bottom,
       transparent,
       rgb(var(--background-start-rgb))
-      )
-      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-end-rgb));
+  min-height: 100vh;
 }
 
+@layer components {
+  /* Botones refactorizados para usar las variables de la Skill saas-logic */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:opacity-90 py-2 px-4 rounded transition-all disabled:bg-gray-400;
+  }
 
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:opacity-80 py-2 px-4 rounded transition-all;
+  }
 
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-all;
+  }
+
+  .btn-disabled {
+    @apply bg-gray-300 text-gray-500 cursor-not-allowed py-2 px-4 rounded;
+  }
+}
+
+/* Tus animaciones se mantienen igual */
 @keyframes fadeIn {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
-} 
-
-@-webkit-keyframes fadeIn {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .fade-in {
-  -webkit-animation-duration: 0.5s;
-  animation-duration: 0.5s;
-  -webkit-animation-fill-mode: both;
-  animation-fill-mode: both;
-
-  -webkit-animation-name: fadeIn;
-  animation-name: fadeIn;
-}
-
-
-.btn-primary {
-  @apply bg-blue-600 hover:bg-blue-800 text-white py-2 px-4 rounded transition-all;
-}
-
-.btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-black py-2 px-4 rounded transition-all;
-}
-
-.btn-disabled {
-  @apply bg-gray-600 text-white py-2 px-4 rounded transition-all;
-}
-
-.btn-danger {
-  @apply bg-red-500 hover:bg-red-700 text-white py-2 px-4 transition-all;
+  animation: fadeIn 0.5s both;
 }

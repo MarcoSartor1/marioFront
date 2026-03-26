@@ -1,25 +1,17 @@
 'use server';
 
-import prisma from '@/lib/prisma';
+import { apiGet } from '@/lib/api';
 
+interface Country {
+  id: string;
+  name: string;
+}
 
-export const getCountries = async() => {
-
+export const getCountries = async (): Promise<Country[]> => {
   try {
-    
-    const countries = await prisma.country.findMany({
-      orderBy: {
-        name: 'asc'
-      }
-    });
-
-    return countries;
-
-
+    return await apiGet<Country[]>('/countries');
   } catch (error) {
     console.log(error);
     return [];
   }
-
-
-}
+};

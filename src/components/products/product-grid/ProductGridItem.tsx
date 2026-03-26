@@ -16,17 +16,21 @@ export const ProductGridItem = ( { product }: Props ) => {
 
   const [ displayImage, setDisplayImage ] = useState( product.images[ 0 ] );
 
+  const getImageSrc = (img: string | undefined) => {
+    if ( !img ) return '/imgs/placeholder.jpg';
+    return img.startsWith('http') ? img : `/products/${img}`;
+  };
 
   return (
     <div className="rounded-md overflow-hidden fade-in">
       <Link href={ `/product/${ product.slug }` }>
         <Image
-          src={ `/products/${ displayImage }` }
+          src={ getImageSrc(displayImage) }
           alt={ product.title }
           className="w-full object-cover rounded"
           width={ 500 }
           height={ 500 }
-          onMouseEnter={ () => setDisplayImage( product.images[1] )  }
+          onMouseEnter={ () => product.images[1] && setDisplayImage( product.images[1] ) }
           onMouseLeave={ () => setDisplayImage( product.images[0] ) }
         />
       </Link>

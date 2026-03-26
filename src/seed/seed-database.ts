@@ -21,9 +21,31 @@ async function main() {
   await prisma.productImage.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.storeConfig.deleteMany();
   // ]);
-  
+
   const { categories, products, users } = initialData;
+
+  // 2. Crear configuración inicial de la tienda (White Label)
+  await prisma.storeConfig.create({
+    data: {
+      name: 'Teslo | Shop',
+      primaryColor: '#3b82f6',      // Azul (Tailwind blue-500)
+      secondaryColor: '#1e293b',    // Slate oscuro (Tailwind slate-800)
+      logoUrl: null,                // Sin logo por defecto
+      bankName: 'Banco Ejemplo',
+      bankAccount: '1234567890',
+      bankAccountType: 'Cuenta Corriente',
+      bankOwnerName: 'Teslo Shop SA',
+      bankCbu: '0000003100012345678901',
+      bankAlias: 'teslo.shop.mp',
+      shippingInfo: 'Envíos a todo el país. CABA y GBA: 24-48hs. Interior: 3-5 días hábiles.',
+      contactEmail: 'contacto@teslo-shop.com',
+      contactPhone: '+54 9 11 1234-5678',
+    },
+  });
+
+  console.log('✅ Configuración de tienda creada');
 
 
   await prisma.user.createMany({

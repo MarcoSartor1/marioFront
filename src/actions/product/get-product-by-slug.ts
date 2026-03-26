@@ -1,36 +1,42 @@
 'use server';
 
-import prisma from '@/lib/prisma';
+interface NestProduct {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  slug: string;
+  stock: number;
+  sizes: string[];
+  gender: string;
+  tags: string[];
+  categoryId?: string;
+  images: string[];
+}
 
-
-export const getProductBySlug = async( slug: string ) => {
-
-
+export const getProductBySlug = async (slug: string) => {
   try {
+    const resp = await fetch(`${process.env.API_URL}/products/${slug}`, {
+      cache: 'no-store',
+    });
 
-    const product = await prisma.product.findFirst({
-      include: {
-        ProductImage: true
-      },
-      where: {
-        slug: slug,
-      }
-    })
+    if (resp.status === 404) return null;
+    if (!resp.ok) throw new Error('Error al obtener producto por slug');
 
-
-    if ( !product ) return null;
+    const product: NestProduct = await resp.json();
 
     return {
       ...product,
-      images: product.ProductImage.map( image => image.url )
+      inStock: product.stock,
+      images: product.images ?? [],
+      ProductImage: (product.images ?? []).map((url, index) => ({
+        id: index,
+        url,
+        productId: product.id,
+      })),
     };
-
-    
   } catch (error) {
     console.log(error);
     throw new Error('Error al obtener producto por slug');
   }
-
-
-
-}
+};

@@ -1,38 +1,11 @@
-"use server";
+'use server';
 
-import type { Address } from "@/interfaces";
-import prisma from "@/lib/prisma";
+import type { Address } from '@/interfaces';
+import { apiFetch } from '@/lib/api';
 
-export const setUserAddress = async (address: Address, userId: string) => {
+export const setUserAddress = async (address: Address, _userId: string) => {
   try {
-
-    const newAddress = await createOrReplaceAddress( address, userId );
-
-    return {
-      ok: true,
-      address: newAddress,
-    }
-
-  } catch (error) {
-    console.log(error);
-    return {
-      ok: false,
-      message: "No se pudo grabar la dirección",
-    };
-  }
-};
-
-const createOrReplaceAddress = async (address: Address, userId: string) => {
-  try {
-
-    console.log({ userId });
-
-    const storedAddress = await prisma.userAddress.findUnique({
-      where: { userId },
-    });
-
-    const addressToSave = {
-      userId: userId,
+    const body = {
       address: address.address,
       address2: address.address2,
       countryId: address.country,
@@ -43,25 +16,21 @@ const createOrReplaceAddress = async (address: Address, userId: string) => {
       postalCode: address.postalCode,
     };
 
-    if (!storedAddress) {
-      const newAddress = await prisma.userAddress.create({
-        data: addressToSave,
-      });
+    const resp = await apiFetch('/addresses', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
 
-      return newAddress;
-    }
+    if (!resp.ok) throw new Error('No se pudo grabar la dirección');
 
-    const updatedAddress = await prisma.userAddress.update({
-      where: { userId },
-      data: addressToSave
-    })
+    const newAddress = await resp.json();
 
-    return updatedAddress;
-
-
-
+    return { ok: true, address: newAddress };
   } catch (error) {
     console.log(error);
-    throw new Error("No se pudo grabar la dirección");
+    return {
+      ok: false,
+      message: 'No se pudo grabar la dirección',
+    };
   }
 };
