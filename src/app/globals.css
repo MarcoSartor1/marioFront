@@ -5,9 +5,9 @@
 :root {
   /* Colores dinámicos para White Label */
   --primary: #274494; /* Tu color actual por defecto */
-  --primary-foreground: #111010;
+  --primary-foreground: #ffffff;
   --secondary: #0b54e5;
-  --secondary-foreground: #111827;
+  --secondary-foreground: #ffffff;
 
   /* Variables de Next.js originales (ajustadas para convivir) */
   --foreground-rgb: 0, 0, 0;

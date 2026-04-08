@@ -8,6 +8,7 @@ interface ProductToOrder {
   productId: string;
   quantity: number;
   size: Size;
+  price: number;
 }
 
 export const placeOrder = async (productIds: ProductToOrder[], address: Address) => {
@@ -24,8 +25,14 @@ export const placeOrder = async (productIds: ProductToOrder[], address: Address)
     const body = {
       items: productIds,
       address: {
-        ...address,
-        countryId: address.country,
+        firstName: address.firstName,
+        lastName: address.lastName,
+        address: address.address,
+        address2: address.address2,
+        postalCode: address.postalCode,
+        city: address.city,
+        phone: address.phone,
+        countryId: 'AR',
       },
     };
 

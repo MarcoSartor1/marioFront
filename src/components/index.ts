@@ -9,6 +9,7 @@ export * from './orders/OrderStatus';
 
 
 export * from './paypal/PayPalButton'
+export * from './mercadopago/MercadoPagoButton'
 
 
 export * from './providers/Providers';

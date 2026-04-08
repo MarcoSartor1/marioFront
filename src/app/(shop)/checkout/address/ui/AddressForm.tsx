@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import clsx from 'clsx';
 
-
 import type { Address, Country } from '@/interfaces';
 import { useAddressStore } from '@/store';
 import { deleteUserAddress, setUserAddress } from '@/actions';
@@ -19,7 +18,6 @@ type FormInputs = {
   address2?: string;
   postalCode: string;
   city: string;
-  country: string;
   phone: string;
   rememberAddress: boolean;
 }
@@ -34,6 +32,8 @@ interface Props {
 export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
 
   const router = useRouter();
+  const argentina = countries.find(c => c.name === 'Argentina') ?? { id: 'AR', name: 'Argentina' };
+
   const { handleSubmit, register, formState: { isValid }, reset } = useForm<FormInputs>({
     defaultValues: {
       ...(userStoredAddress as any),
@@ -48,35 +48,27 @@ export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
   const setAddress = useAddressStore( state => state.setAddress );
   const address = useAddressStore( state => state.address );
 
-
-
   useEffect(() => {
     if ( address.firstName ) {
-      reset(address)
+      reset(address);
     }
-  },[address, reset])
-  
-
-
+  }, [address, reset])
 
 
   const onSubmit = async( data: FormInputs ) => {
-    
 
     const { rememberAddress, ...restAddress } = data;
 
     setAddress(restAddress);
 
     if ( rememberAddress ) {
-      await setUserAddress(restAddress, session!.user.id );
+      await setUserAddress(restAddress, session!.user.id);
     } else {
       await deleteUserAddress(session!.user.id);
     }
 
     router.push('/checkout');
-
   }
-
 
 
   return (
@@ -113,14 +105,12 @@ export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
 
       <div className="flex flex-col mb-2">
         <span>País</span>
-        <select className="p-2 border rounded-md bg-gray-200" { ...register('country', { required: true  }) }>
-          <option value="">[ Seleccione ]</option>
-          {
-            countries.map( country => (
-              <option key={ country.id } value={ country.id }>{ country.name }</option>
-            ))
-          }
-        </select>
+        <input
+          type="text"
+          value={ argentina.name }
+          disabled
+          className="p-2 border rounded-md bg-gray-200 text-gray-500 cursor-not-allowed"
+        />
       </div>
 
       <div className="flex flex-col mb-2">
@@ -129,7 +119,7 @@ export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
       </div>
 
       <div className="flex flex-col mb-2 sm:mt-1">
-        
+
         <div className="inline-flex items-center mb-10 ">
           <label
             className="relative flex cursor-pointer items-center rounded-full p-3"
@@ -164,9 +154,7 @@ export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
 
         <button
           disabled={ !isValid }
-          // href="/checkout"
           type="submit"
-          // className="btn-primary flex w-full sm:w-1/2 justify-center "
           className={ clsx({
             'btn-primary': isValid,
             'btn-disabled': !isValid,

@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import { getOrderById } from "@/actions/order/get-order-by-id";
 import { currencyFormat } from "@/utils";
-import { OrderStatus, PayPalButton, Title } from "@/components";
+import { MercadoPagoButton, OrderStatus, Title } from "@/components";
 
 interface Props {
   params: {
@@ -14,15 +14,13 @@ interface Props {
 export default async function OrdersByIdPage({ params }: Props) {
   const { id } = params;
 
-  // Todo: Llamar el server action
-
   const { ok, order } = await getOrderById(id);
 
   if (!ok) {
     redirect("/");
   }
 
-  const address = order!.OrderAddress;
+  const address = order!.address;
 
   return (
     <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
@@ -35,25 +33,26 @@ export default async function OrdersByIdPage({ params }: Props) {
             <OrderStatus isPaid={order?.isPaid ?? false} />
 
             {/* Items */}
-            {order!.OrderItem.map((item) => (
+            {order!.items.map((item: any) => (
               <div
-                key={item.product.slug + "-" + item.size}
+                key={item.productId + "-" + item.size}
                 className="flex mb-5"
               >
                 <Image
-                  src={`/products/${item.product.ProductImage[0].url}`}
+                  src={(() => {
+                    const url = item.product?.images?.[0]?.url;
+                    if (!url) return '/imgs/placeholder.jpg';
+                    return url.startsWith('http') ? url : `${process.env.API_URL}/files/product/${url}`;
+                  })()}
                   width={100}
                   height={100}
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                  }}
-                  alt={item.product.title}
+                  style={{ width: "100px", height: "100px" }}
+                  alt={item.product?.title ?? "Producto"}
                   className="mr-5 rounded"
                 />
 
                 <div>
-                  <p>{item.product.title}</p>
+                  <p>{item.product?.title}</p>
                   <p>
                     ${item.price} x {item.quantity}
                   </p>
@@ -70,15 +69,15 @@ export default async function OrdersByIdPage({ params }: Props) {
             <h2 className="text-2xl mb-2">Dirección de entrega</h2>
             <div className="mb-10">
               <p className="text-xl">
-                {address!.firstName} {address!.lastName}
+                {address?.firstName} {address?.lastName}
               </p>
-              <p>{address!.address}</p>
-              <p>{address!.address2}</p>
-              <p>{address!.postalCode}</p>
+              <p>{address?.address}</p>
+              <p>{address?.address2}</p>
+              <p>{address?.postalCode}</p>
               <p>
-                {address!.city}, {address!.countryId}
+                {address?.city}, Argentina
               </p>
-              <p>{address!.phone}</p>
+              <p>{address?.phone}</p>
             </div>
 
             {/* Divider */}
@@ -99,7 +98,7 @@ export default async function OrdersByIdPage({ params }: Props) {
                 {currencyFormat(order!.subTotal)}
               </span>
 
-              <span>Impuestos (15%)</span>
+              <span>Impuestos (21%)</span>
               <span className="text-right">{currencyFormat(order!.tax)}</span>
 
               <span className="mt-5 text-2xl">Total:</span>
@@ -112,7 +111,7 @@ export default async function OrdersByIdPage({ params }: Props) {
               {order?.isPaid ? (
                 <OrderStatus isPaid={order?.isPaid ?? false} />
               ) : (
-                <PayPalButton amount={order!.total} orderId={order!.id} />
+                <MercadoPagoButton orderId={order!.id} />
               )}
             </div>
           </div>

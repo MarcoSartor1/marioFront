@@ -38,6 +38,7 @@ export const PlaceOrder = () => {
       productId: product.id,
       quantity: product.quantity,
       size: product.size,
+      price: product.price,
     }))
 
 
@@ -74,7 +75,7 @@ export const PlaceOrder = () => {
         <p>{address.address2}</p>
         <p>{address.postalCode}</p>
         <p>
-          {address.city}, {address.country}
+          {address.city}, Argentina
         </p>
         <p>{address.phone}</p>
       </div>

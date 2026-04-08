@@ -43,7 +43,7 @@ export const TopMenu = ({ storeName, logoUrl, categories }: Props) => {
   }, []);
 
   return (
-    <nav className="flex px-5 justify-between items-center w-full">
+    <nav className="sticky top-0 z-30 flex px-5 justify-between items-center w-full h-16 bg-white shadow-sm">
       {/* Logo */}
       <div>
         <Link href="/" className="flex items-center gap-2">

@@ -9,9 +9,11 @@ interface Country {
 
 export const getCountries = async (): Promise<Country[]> => {
   try {
-    return await apiGet<Country[]>('/countries');
+    const data = await apiGet<unknown>('/countries');
+    const list = Array.isArray(data) ? data : (data as any)?.data ?? [];
+    return list as Country[];
   } catch (error) {
-    console.log(error);
+    console.error('[getCountries] Error al obtener países:', error);
     return [];
   }
 };

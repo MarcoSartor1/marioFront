@@ -9,10 +9,18 @@ import { redirect } from "next/navigation";
 import { IoCardOutline } from "react-icons/io5";
 
 export default async function OrdersPage() {
-  const { ok, orders = [] } = await getOrdersByUser();
+  const { ok, orders = [], notAuthenticated, message } = await getOrdersByUser();
+
+  if (notAuthenticated) {
+    redirect("/auth/login");
+  }
 
   if (!ok) {
-    redirect("/auth/login");
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <p className="text-red-500 text-lg">{message ?? 'Error al cargar las órdenes'}</p>
+      </div>
+    );
   }
 
   return (

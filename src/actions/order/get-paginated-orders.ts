@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/auth.config';
+import { AdminOrder } from '@/interfaces';
 import { apiGet } from '@/lib/api';
 
 export const getPaginatedOrders = async () => {
@@ -14,7 +15,7 @@ export const getPaginatedOrders = async () => {
   }
 
   try {
-    const orders = await apiGet<any[]>('/orders');
+    const orders = await apiGet<AdminOrder[]>('/orders');
     return { ok: true, orders };
   } catch (error) {
     console.log(error);

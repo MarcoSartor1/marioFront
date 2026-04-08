@@ -34,7 +34,6 @@ export const createUpdateProduct = async (formData: FormData) => {
   const productParsed = productSchema.safeParse(data);
 
   if (!productParsed.success) {
-    console.log(productParsed.error);
     return { ok: false };
   }
 

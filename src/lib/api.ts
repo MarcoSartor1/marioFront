@@ -10,7 +10,7 @@ export async function apiFetch(
   const session = await auth();
   const backendToken = (session?.user as any)?.token as string | undefined;
 
-  const headers: HeadersInit = {
+const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(options.headers ?? {}),
     ...(backendToken ? { Authorization: `Bearer ${backendToken}` } : {}),

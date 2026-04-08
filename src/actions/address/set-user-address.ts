@@ -8,7 +8,7 @@ export const setUserAddress = async (address: Address, _userId: string) => {
     const body = {
       address: address.address,
       address2: address.address2,
-      countryId: address.country,
+      countryId: 'AR',
       city: address.city,
       firstName: address.firstName,
       lastName: address.lastName,
@@ -21,7 +21,11 @@ export const setUserAddress = async (address: Address, _userId: string) => {
       body: JSON.stringify(body),
     });
 
-    if (!resp.ok) throw new Error('No se pudo grabar la dirección');
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      console.error('[setUserAddress] status:', resp.status, 'body:', JSON.stringify(errBody));
+      throw new Error(errBody?.message ?? 'No se pudo grabar la dirección');
+    }
 
     const newAddress = await resp.json();
 
