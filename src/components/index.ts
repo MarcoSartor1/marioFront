@@ -30,3 +30,4 @@ export * from './ui/sidebar/Sidebar';
 export * from './ui/title/Title';
 export * from './ui/top-menu/TopMenu';
 export * from './ui/top-menu/TopMenuWrapper';
+export * from './ui/transfer/TransferPaymentSection';

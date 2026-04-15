@@ -1,7 +1,7 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import type { Address, Size } from '@/interfaces';
+import type { Address, PaymentMethod, Size } from '@/interfaces';
 import { apiFetch } from '@/lib/api';
 
 interface ProductToOrder {
@@ -11,7 +11,11 @@ interface ProductToOrder {
   price: number;
 }
 
-export const placeOrder = async (productIds: ProductToOrder[], address: Address) => {
+export const placeOrder = async (
+  productIds: ProductToOrder[],
+  address: Address,
+  paymentMethod: PaymentMethod = 'mercadopago',
+) => {
   const session = await auth();
 
   if (!session?.user) {
@@ -24,6 +28,7 @@ export const placeOrder = async (productIds: ProductToOrder[], address: Address)
   try {
     const body = {
       items: productIds,
+      paymentMethod,
       address: {
         firstName: address.firstName,
         lastName: address.lastName,

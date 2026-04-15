@@ -33,3 +33,17 @@ export interface ProductImage {
 type Category = 'men'|'women'|'kid'|'unisex';
 export type Size = 'XS'|'S'|'M'|'L'|'XL'|'XXL'|'XXXL';
 export type Type = 'shirts'|'pants'|'hoodies'|'hats';
+
+export interface AdminProduct {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  slug: string;
+  stock: number;
+  sizes: string[];
+  gender: string;
+  tags: string[];
+  images: string[];
+  isPublished: boolean;
+}

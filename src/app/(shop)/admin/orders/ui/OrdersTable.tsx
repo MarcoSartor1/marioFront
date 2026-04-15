@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AdminOrder, OrderStatus } from '@/interfaces';
 import { updateOrderStatus } from '@/actions';
-import { IoCardOutline, IoEllipsisVertical, IoClose, IoAlertCircleOutline } from 'react-icons/io5';
+import { IoCardOutline, IoEllipsisVertical, IoClose, IoAlertCircleOutline, IoReceiptOutline } from 'react-icons/io5';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending: 'Pendiente',
@@ -34,6 +34,24 @@ function formatDate(iso: string) {
   });
 }
 
+function PaymentMethodBadge({ method }: { method: AdminOrder['paymentMethod'] }) {
+  if (!method) {
+    return <span className="text-xs text-gray-400">No definido</span>;
+  }
+  if (method === 'transfer') {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+        🏦 Transferencia
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-[#009ee3] bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5">
+      💳 MercadoPago
+    </span>
+  );
+}
+
 interface Props {
   orders: AdminOrder[];
 }
@@ -42,26 +60,20 @@ export function OrdersTable({ orders: initialOrders }: Props) {
   const [orders, setOrders] = useState<AdminOrder[]>(initialOrders);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
 
-  // Menú tres puntos
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Modal ver orden (productos)
   const [viewOrder, setViewOrder] = useState<AdminOrder | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
 
-  // Modal actualizar estado
   const [updateOrder, setUpdateOrder] = useState<AdminOrder | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('pending');
-
-  // Modal de confirmación
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const filtered =
-    statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter);
+  const filtered = statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter);
 
-  // Cierra menú al hacer click fuera
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -97,11 +109,8 @@ export function OrdersTable({ orders: initialOrders }: Props) {
       return;
     }
 
-    // Actualizar estado local
     setOrders((prev) =>
-      prev.map((o) =>
-        o.id === updateOrder.id ? { ...o, status: selectedStatus } : o
-      )
+      prev.map((o) => o.id === updateOrder.id ? { ...o, status: selectedStatus } : o)
     );
 
     setUpdating(false);
@@ -144,6 +153,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
           <tr>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">#ID</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Nombre completo</th>
+            <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Método de pago</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Estado</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Fecha</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left"></th>
@@ -152,7 +162,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
         <tbody>
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
+              <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
                 No hay órdenes para este estado.
               </td>
             </tr>
@@ -167,6 +177,20 @@ export function OrdersTable({ orders: initialOrders }: Props) {
               </td>
               <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
                 {order.fullName}
+              </td>
+              <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <PaymentMethodBadge method={order.paymentMethod} />
+                  {order.paymentMethod === 'transfer' && order.paymentReceipt && (
+                    <button
+                      onClick={() => setReceiptUrl(order.paymentReceipt)}
+                      title="Ver comprobante"
+                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                    >
+                      <IoReceiptOutline size={16} />
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
                 <div className={`flex items-center gap-1 ${STATUS_COLORS[order.status]}`}>
@@ -192,14 +216,19 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                   {openMenuId === order.id && (
                     <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded shadow-lg z-10 flex flex-col">
                       <button
-                        onClick={() => {
-                          setViewOrder(order);
-                          setOpenMenuId(null);
-                        }}
+                        onClick={() => { setViewOrder(order); setOpenMenuId(null); }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Ver orden
                       </button>
+                      {order.paymentMethod === 'transfer' && order.paymentReceipt && (
+                        <button
+                          onClick={() => { setReceiptUrl(order.paymentReceipt); setOpenMenuId(null); }}
+                          className="w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-gray-100"
+                        >
+                          Ver comprobante
+                        </button>
+                      )}
                       <button
                         onClick={() => openUpdateModal(order)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -214,6 +243,55 @@ export function OrdersTable({ orders: initialOrders }: Props) {
           ))}
         </tbody>
       </table>
+
+      {/* ── Modal: Ver comprobante ── */}
+      {receiptUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setReceiptUrl(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h2 className="text-base font-semibold text-gray-900">Comprobante de transferencia</h2>
+              <div className="flex items-center gap-3">
+                <a
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Abrir en nueva pestaña
+                </a>
+                <button
+                  onClick={() => setReceiptUrl(null)}
+                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                >
+                  <IoClose size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 flex items-center justify-center bg-gray-50 min-h-64">
+              {receiptUrl.endsWith('.pdf') ? (
+                <iframe
+                  src={receiptUrl}
+                  className="w-full h-96 rounded border"
+                  title="Comprobante PDF"
+                />
+              ) : (
+                <img
+                  src={receiptUrl}
+                  alt="Comprobante de transferencia"
+                  className="max-h-[70vh] max-w-full object-contain rounded"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal: Ver orden (productos) ── */}
       {viewOrder && (
@@ -266,18 +344,29 @@ export function OrdersTable({ orders: initialOrders }: Props) {
             </div>
 
             <div className="px-6 py-4 border-t flex justify-between items-center">
-              <span className="text-sm text-gray-500">
-                Estado:{' '}
-                <span className={`font-medium ${STATUS_COLORS[viewOrder.status]}`}>
-                  {STATUS_LABELS[viewOrder.status]}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  Estado:{' '}
+                  <span className={`font-medium ${STATUS_COLORS[viewOrder.status]}`}>
+                    {STATUS_LABELS[viewOrder.status]}
+                  </span>
                 </span>
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                Total: $
-                {viewOrder.products
-                  .reduce((sum, p) => sum + p.price * p.quantity, 0)
-                  .toFixed(2)}
-              </span>
+                <PaymentMethodBadge method={viewOrder.paymentMethod} />
+              </div>
+              <div className="flex items-center gap-3">
+                {viewOrder.paymentMethod === 'transfer' && viewOrder.paymentReceipt && (
+                  <button
+                    onClick={() => { setViewOrder(null); setReceiptUrl(viewOrder.paymentReceipt); }}
+                    className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <IoReceiptOutline size={14} />
+                    Ver comprobante
+                  </button>
+                )}
+                <span className="text-sm font-semibold text-gray-900">
+                  Total: ${viewOrder.products.reduce((sum, p) => sum + p.price * p.quantity, 0).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -323,9 +412,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 {ALL_UPDATE_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </option>
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                 ))}
               </select>
             </div>

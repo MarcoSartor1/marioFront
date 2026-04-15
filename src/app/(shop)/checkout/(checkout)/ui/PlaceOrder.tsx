@@ -7,58 +7,47 @@ import clsx from 'clsx';
 import { placeOrder } from '@/actions';
 import { useAddressStore, useCartStore } from "@/store";
 import { currencyFormat } from '@/utils';
+import type { PaymentMethod } from '@/interfaces';
 
 export const PlaceOrder = () => {
-
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-
-
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mercadopago');
 
   const address = useAddressStore((state) => state.address);
 
   const { itemsInCart, subTotal, tax, total } = useCartStore((state) =>
     state.getSummaryInformation()
   );
-  const cart = useCartStore( state => state.cart );
-  const clearCart = useCartStore( state => state.clearCart );
+  const cart = useCartStore(state => state.cart);
+  const clearCart = useCartStore(state => state.clearCart);
 
   useEffect(() => {
     setLoaded(true);
   }, []);
 
-
-  const onPlaceOrder = async() => {
+  const onPlaceOrder = async () => {
     setIsPlacingOrder(true);
-    // await sleep(2);
 
-    const productsToOrder = cart.map( product => ({
+    const productsToOrder = cart.map(product => ({
       productId: product.id,
       quantity: product.quantity,
       size: product.size,
       price: product.price,
-    }))
+    }));
 
-
-    //! Server Action
-    const resp = await placeOrder( productsToOrder, address);
-    if ( !resp.ok ) {
+    const resp = await placeOrder(productsToOrder, address, paymentMethod);
+    if (!resp.ok) {
       setIsPlacingOrder(false);
       setErrorMessage(resp.message);
       return;
     }
 
-    //* Todo salio bien!
     clearCart();
-    router.replace('/orders/' + resp.order?.id );
-
-
-  }
-
-
-
+    router.replace('/orders/' + resp.order?.id);
+  };
 
   if (!loaded) {
     return <p>Cargando...</p>;
@@ -74,13 +63,10 @@ export const PlaceOrder = () => {
         <p>{address.address}</p>
         <p>{address.address2}</p>
         <p>{address.postalCode}</p>
-        <p>
-          {address.city}, Argentina
-        </p>
+        <p>{address.city}, Argentina</p>
         <p>{address.phone}</p>
       </div>
 
-      {/* Divider */}
       <div className="w-full h-0.5 rounded bg-gray-200 mb-10" />
 
       <h2 className="text-2xl mb-2">Resumen de orden</h2>
@@ -98,42 +84,70 @@ export const PlaceOrder = () => {
         <span className="text-right">{currencyFormat(tax)}</span>
 
         <span className="mt-5 text-2xl">Total:</span>
-        <span className="mt-5 text-2xl text-right">
-          {currencyFormat(total)}
-        </span>
+        <span className="mt-5 text-2xl text-right">{currencyFormat(total)}</span>
       </div>
 
-      <div className="mt-5 mb-2 w-full">
-        <p className="mb-5">
-          {/* Disclaimer */}
-          <span className="text-xs">
-            Al hacer clic en &quot;Colocar orden&quot;, aceptas nuestros{" "}
-            <a href="#" className="underline">
-              términos y condiciones
-            </a>{" "}
-            y{" "}
-            <a href="#" className="underline">
-              política de privacidad
-            </a>
-          </span>
-        </p>
+      <div className="w-full h-0.5 rounded bg-gray-200 my-8" />
 
-
-        <p className="text-red-500">{ errorMessage }</p>
+      {/* Método de pago */}
+      <h2 className="text-2xl mb-4">Método de pago</h2>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <button
+          type="button"
+          onClick={() => setPaymentMethod('mercadopago')}
+          className={clsx(
+            'flex flex-col items-center gap-1 p-4 rounded-lg border-2 transition-colors text-sm font-medium',
+            paymentMethod === 'mercadopago'
+              ? 'border-[#009ee3] bg-[#009ee3]/5 text-[#009ee3]'
+              : 'border-gray-200 text-gray-500 hover:border-gray-300'
+          )}
+        >
+          <span className="text-2xl">💳</span>
+          MercadoPago
+        </button>
 
         <button
-          // href="/orders/123"
-          onClick={ onPlaceOrder }
-          className={
-            clsx({
-              'btn-primary': !isPlacingOrder,
-              'btn-disabled': isPlacingOrder
-            })
-          }
+          type="button"
+          onClick={() => setPaymentMethod('transfer')}
+          className={clsx(
+            'flex flex-col items-center gap-1 p-4 rounded-lg border-2 transition-colors text-sm font-medium',
+            paymentMethod === 'transfer'
+              ? 'border-blue-600 bg-blue-50 text-blue-700'
+              : 'border-gray-200 text-gray-500 hover:border-gray-300'
+          )}
         >
-          Colocar orden
+          <span className="text-2xl">🏦</span>
+          Transferencia
         </button>
       </div>
+
+      {paymentMethod === 'transfer' && (
+        <p className="text-sm text-gray-500 mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
+          Al confirmar la orden recibirás los datos bancarios para realizar la transferencia.
+          Luego podrás subir el comprobante desde el detalle de tu orden.
+        </p>
+      )}
+
+      <p className="mb-5">
+        <span className="text-xs">
+          Al hacer clic en &quot;Colocar orden&quot;, aceptas nuestros{" "}
+          <a href="#" className="underline">términos y condiciones</a>{" "}
+          y{" "}
+          <a href="#" className="underline">política de privacidad</a>
+        </span>
+      </p>
+
+      <p className="text-red-500">{errorMessage}</p>
+
+      <button
+        onClick={onPlaceOrder}
+        className={clsx({
+          'btn-primary': !isPlacingOrder,
+          'btn-disabled': isPlacingOrder,
+        })}
+      >
+        Colocar orden
+      </button>
     </div>
   );
 };

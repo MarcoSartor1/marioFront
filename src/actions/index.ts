@@ -24,14 +24,18 @@ export * from './order/update-order-status';
 export * from './payments/set-transaction-id';
 export * from './payments/paypal-check-payment';
 export * from './payments/create-mp-preference';
+export * from './payments/upload-payment-receipt';
 
 
 export * from './product/delete-product-image';
 export * from './product/create-update-product';
+export * from './product/get-admin-products';
 export * from './product/get-product-by-slug';
 export * from './product/get-products-by-category';
 export * from './product/get-stock-by-slug';
 export * from './product/product-pagination';
+export * from './product/toggle-product-publish';
+export * from './product/sync-xubio-products';
 
 
 export * from './user/change-user-role';
