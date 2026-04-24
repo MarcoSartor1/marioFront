@@ -11,14 +11,28 @@ interface AdminProductsResponse {
 interface Options {
   page?: number;
   take?: number;
+  search?: string;
+  sortByStock?: string;
+  status?: string;
 }
 
-export const getAdminProducts = async ({ page = 1, take = 12 }: Options = {}) => {
+export const getAdminProducts = async ({
+  page = 1,
+  take = 12,
+  search,
+  sortByStock,
+  status,
+}: Options = {}) => {
   const offset = (page - 1) * take;
+
+  const params = new URLSearchParams({ limit: String(take), offset: String(offset) });
+  if (search) params.set('search', search);
+  if (sortByStock) params.set('sortByStock', sortByStock);
+  if (status && status !== 'all') params.set('status', status);
 
   try {
     const { data, total } = await apiGet<AdminProductsResponse>(
-      `/products/admin?limit=${take}&offset=${offset}`,
+      `/products/admin?${params.toString()}`,
     );
 
     return {

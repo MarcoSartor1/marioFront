@@ -4,163 +4,93 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Teslo Shop is an e-commerce application built with Next.js 14 (App Router), TypeScript, Prisma ORM, PostgreSQL, and NextAuth v5. It features product management, shopping cart, checkout flow, PayPal integration, and admin panel with role-based access control.
+Teslo Shop is a **Next.js 14 frontend** that acts as a BFF (Backend For Frontend) on top of a **separate NestJS backend API**. The frontend does not own the database directly — all business logic, data persistence, and payment processing live in the NestJS API. The Next.js layer handles SSR, NextAuth sessions, server actions, and UI.
+
+Stack: Next.js 14 (App Router), TypeScript, NextAuth v5, Zustand, Tailwind CSS, MercadoPago.
 
 ## Development Commands
 
-### Initial Setup
 ```bash
-# 1. Clone and install dependencies
-npm install
-
-# 2. Setup environment variables
-# Copy .env.template to .env and configure:
-# - Database credentials (DB_USER, DB_NAME, DB_PASSWORD)
-# - AUTH_SECRET (generate with: openssl rand -base64 32)
-# - PayPal credentials (NEXT_PUBLIC_PAYPAL_CLIENT_ID, PAYPAL_SECRET)
-# - Cloudinary URL (CLOUDINARY_URL)
-
-# 3. Start PostgreSQL database (Docker)
-docker compose up -d
-
-# 4. Run database migrations
-npx prisma migrate dev
-
-# 5. Seed the database with initial data
-npm run seed
-
-# 6. Clear browser localStorage before running
-
-# 7. Start development server
-npm run dev
-# Or with Turbo mode:
-npm run dev:turbo
-```
-
-### Common Commands
-```bash
-# Development
 npm run dev              # Start Next.js dev server
 npm run dev:turbo        # Start with Turbo mode
-
-# Database
-npx prisma migrate dev   # Create and apply migrations
-npx prisma generate      # Generate Prisma Client
-npx prisma studio        # Open Prisma Studio GUI
-npm run prisma:deploy    # Deploy migrations and generate client
-npm run seed             # Seed database with initial data
-
-# Build & Deploy
-npm run build            # Build for production (includes prisma:deploy)
-npm start                # Start production server
-
-# Linting
+npm run build            # Build for production
 npm run lint             # Run Next.js linter
 ```
 
+### Required environment variables
+- `API_URL` — Base URL of the NestJS backend (e.g. `http://localhost:3001/api`)
+- `AUTH_SECRET` — NextAuth secret (`openssl rand -base64 32`)
+- `NEXTAUTH_URL` — Public URL of this frontend
+
 ## Architecture
+
+### Backend API Integration
+
+All server actions call the NestJS backend via `src/lib/api.ts`:
+- `apiFetch(path, options)` — authenticated fetch; reads JWT token from NextAuth session and adds `Authorization: Bearer <token>` header automatically
+- Helpers: `apiGet`, `apiPost`, `apiPatch`, `apiDelete`
+- Auth: login/register delegate to `POST /auth/login` and `/auth/register` on the backend; the backend returns `{ id, name, email, role, token }` and the JWT is stored in the NextAuth session token
+- The backend token is accessed via `(session.user as any).token`
 
 ### Directory Structure
 
-**`src/actions/`** - Server Actions (Next.js Server Actions pattern)
-- Organized by domain: `address/`, `auth/`, `order/`, `product/`, `user/`, `payments/`
-- All actions are re-exported from `src/actions/index.ts`
-- Server-side business logic and database operations
-- Use Zod for validation and return standardized response objects
+**`src/actions/`** - Server Actions organized by domain: `address/`, `auth/`, `order/`, `product/`, `user/`, `payments/`, `category/`, `config/`
+- All re-exported from `src/actions/index.ts`
+- Return `{ ok: boolean, message?: string, data? }` shape consistently
 
 **`src/app/`** - Next.js App Router
-- `(shop)/` - Route group for main shop pages (products, cart, checkout, orders)
-- `(shop)/admin/` - Admin panel routes (products, orders, users management)
-- `auth/` - Authentication routes (login, register)
-- `api/` - API routes (likely PayPal webhooks)
+- `(shop)/` - Main shop pages (products, cart, checkout, orders, profile)
+- `(shop)/admin/` - Admin panel (products, orders, users, categories, bulk-upload)
+- `auth/` - Login and register pages
+- `api/products/bulk-upload/` - File upload API route
 
-**`src/components/`** - React Components
-- Organized by feature/domain (ui, product, orders, paypal, providers)
-- Re-exported from `src/components/index.ts`
+**`src/lib/api.ts`** - Authenticated HTTP client for backend calls (see above)
 
-**`src/store/`** - Zustand State Management
-- `cart/` - Shopping cart state
-- `address/` - Address form state
-- `ui/` - UI state (sidebar, modals)
-- All stores re-exported from `src/store/index.ts`
-
-**`src/lib/`** - Utilities and configurations
-- `prisma.ts` - Prisma client singleton
-
-**`prisma/schema.prisma`** - Database Schema
-- Models: User, Product, Category, Order, OrderItem, OrderAddress, UserAddress, Country
-- Enums: Role (admin/user), Gender (men/women/kid/unisex), Size (XS-XXXL)
+**`src/store/`** - Zustand stores: `cart/`, `address/`, `ui/` — all re-exported from `src/store/index.ts`
 
 ### Key Architectural Patterns
 
-**Server Actions Pattern**
-- All data mutations and fetches use Next.js Server Actions in `src/actions/`
-- Server Actions handle authentication checks, database operations, and business logic
-- Called directly from components using `'use server'` directive
+**Payment Methods**
+- **MercadoPago**: `createMpPreference` calls backend `POST /payment/create-preference/:orderId`; result pages at `/orders/[id]/success|failure|pending`
+- **Transfer (manual)**: Order placed with `paymentMethod: transfer`; admin uploads receipt; `paymentReceipt` field stores the image URL
 
-**Authentication**
-- NextAuth v5 (beta) configured in `src/auth.config.ts`
-- Credentials provider with bcryptjs password hashing
-- JWT-based sessions with custom callbacks
-- User roles (admin/user) control access to admin routes
+**SaaS / White-label**
+- `StoreConfig` model (single-row) holds store name, logo, colors, bank transfer details, shipping info
+- Fetched via `getStoreConfig()` which calls `GET /config` with 60s ISR revalidation; falls back to defaults if API unavailable
 
-**Database Access**
-- Prisma ORM with PostgreSQL
-- Singleton Prisma client pattern (avoid multiple instances in dev)
-- Migrations stored in `prisma/migrations/`
-- Always run `prisma generate` after schema changes
+**Categories**
+- Dynamic, admin-managed via `src/app/(shop)/admin/categories/` and `src/app/(shop)/admin/category/[id]/`
+- Products can be browsed by category slug at `/category/[category]`
 
-**State Management**
-- Zustand for client-side state (cart, UI state)
-- Server state fetched via Server Actions
-- Persist cart state to localStorage
-
-**Styling**
-- Tailwind CSS configured globally
-- Custom fonts defined in `src/config/fonts.ts`
-- Global styles in `src/app/globals.css`
-
-**Image Handling**
-- Cloudinary for image uploads and storage
-- Next.js Image component configured for `res.cloudinary.com` domain
-- ProductImage model stores image URLs
-
-**Payment Processing**
-- PayPal integration via `@paypal/react-paypal-js`
-- Server-side payment verification in `src/actions/payments/`
-- Transaction IDs stored on Order model
+**Products**
+- `gender` and `sizes` fields are optional to support non-clothing products
+- Bulk upload available at `/admin/products/bulk-upload`
 
 ### Important Notes
 
-**Database Migrations**
-- Before modifying Prisma schema, ensure database is running
-- After schema changes: `npx prisma migrate dev` (creates migration) or `npx prisma db push` (direct schema sync)
-- Production builds automatically run `prisma:deploy` to apply migrations
+**Authentication**
+- NextAuth v5 (beta) in `src/auth.config.ts`; credentials provider delegates to NestJS `/auth/login`
+- The backend JWT is stored in the session token and forwarded by `apiFetch` automatically
+- User roles (`admin`/`user`) come from the backend response; admin routes check `session.user.role`
 
-**Environment Variables**
-- Never commit `.env` file (use `.env.template` as reference)
-- AUTH_SECRET is required for NextAuth sessions
-- Database URL format: `postgresql://USER:PASSWORD@localhost:5432/DATABASE?schema=public`
+**State Management**
+- Zustand for cart (persisted to localStorage) and UI state
+- Clear localStorage when developing to avoid stale state
 
-**Seeding**
-- Seed script located in `src/seed/seed-database.ts`
-- Run with `npm run seed` to populate initial data
-- Typically includes categories, products, and test users
+**Styling**
+- Tailwind CSS; custom fonts in `src/config/fonts.ts`; global styles in `src/app/globals.css`
 
-**localStorage Usage**
-- Cart state persists to localStorage
-- Clear localStorage when developing to avoid stale state issues
+**Image Handling**
+- Cloudinary for product image uploads
 
-**Route Groups**
-- `(shop)` route group shares common layout for main shop pages
-- `(checkout)` nested route group within checkout flow
-- Admin routes are inside `(shop)/admin/` for consistent navigation
+**Order Status Flow**
+- `pending` → `processing` → `paid` → `shipped` → `delivered` (or `cancelled`)
+- Admin can update status via `updateOrderStatus` action; MercadoPago callbacks update automatically
 
 ### Testing Changes
 
-When making changes:
-1. For schema changes: `npx prisma migrate dev` → `npm run seed` (if needed) → restart dev server
-2. For auth changes: Clear browser cookies and localStorage
-3. For cart/checkout: Clear localStorage and test full flow
-4. For PayPal: Use sandbox credentials and test orders
-5. For admin features: Ensure user has `admin` role in database
+1. For auth changes: clear browser cookies and localStorage; ensure NestJS backend is running
+2. For cart/checkout: clear localStorage and test full flow
+3. For MercadoPago: use sandbox credentials; result pages handle success/failure/pending
+4. For admin features: ensure the user returned by backend has `role: "admin"`
+5. For StoreConfig: changes reflect after 60s ISR revalidation (or redeploy)

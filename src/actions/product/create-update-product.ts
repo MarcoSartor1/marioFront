@@ -72,12 +72,6 @@ export const createUpdateProduct = async (formData: FormData) => {
     if (rest.gender) body.gender = rest.gender;
     if (uploadedImages.length > 0) body.images = uploadedImages.filter(Boolean);
 
-    console.log('=== createUpdateProduct - body enviado al backend ===');
-    console.log(JSON.stringify(body, null, 2));
-    console.log('URL:', `${process.env.API_URL}/products${id ? `/${id}` : ''}`);
-    console.log('Método:', id ? 'PATCH' : 'POST');
-    console.log('=====================================================');
-
     const resp = await fetch(
       `${process.env.API_URL}/products${id ? `/${id}` : ''}`,
       {

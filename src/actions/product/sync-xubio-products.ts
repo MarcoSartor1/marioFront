@@ -15,8 +15,6 @@ export const syncXubioProducts = async (): Promise<
     const resp = await apiFetch('/xubio/sync-products', { method: 'POST' });
     const body = await resp.json().catch(() => null);
 
-    console.log(`[syncXubioProducts] ← status: ${resp.status}`, JSON.stringify(body, null, 2));
-
     if (!resp.ok) {
       const msg = body?.message ?? `Error ${resp.status}`;
       return { ok: false, message: Array.isArray(msg) ? msg.join(', ') : String(msg) };

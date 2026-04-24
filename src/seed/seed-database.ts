@@ -29,7 +29,7 @@ async function main() {
   // 2. Crear configuración inicial de la tienda (White Label)
   await prisma.storeConfig.create({
     data: {
-      name: 'Teslo | Shop',
+      name: 'Costumbres Argentinas',
       primaryColor: '#3b82f6',      // Azul (Tailwind blue-500)
       secondaryColor: '#1e293b',    // Slate oscuro (Tailwind slate-800)
       logoUrl: null,                // Sin logo por defecto

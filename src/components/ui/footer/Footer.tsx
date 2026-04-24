@@ -1,4 +1,5 @@
 import { titleFont } from '@/config/fonts';
+import { STORE_NAME } from '@/config/store';
 import Link from 'next/link';
 
 export const Footer = () => {
@@ -8,23 +9,15 @@ export const Footer = () => {
       <Link
         href='/'
       >
-        <span className={`${ titleFont.className } antialiased font-bold `}>Teslo </span>
-        <span>| shop </span>
+        <span className={`${ titleFont.className } antialiased font-bold `}>{ STORE_NAME } </span>
         <span>© { new Date().getFullYear() }</span>
       </Link>
 
       <Link
-        href='/'
+        href='/privacy'
         className="mx-3"
       >
         Privacidad & Legal
-      </Link>
-
-      <Link
-        href='/'
-        className="mx-3"
-      >
-        Ubicaciones
       </Link>
 
 

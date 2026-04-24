@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { inter } from "@/config/fonts";
+import { STORE_NAME } from "@/config/store";
 
 import "./globals.css";
 import { Providers } from "@/components";
@@ -12,7 +13,7 @@ import { getStoreConfig } from "@/actions/config/get-store-config";
  */
 export async function generateMetadata(): Promise<Metadata> {
   const result = await getStoreConfig();
-  const storeName = result.config?.name || "Teslo | Shop";
+  const storeName = result.config?.name || STORE_NAME;
 
   return {
     title: {
