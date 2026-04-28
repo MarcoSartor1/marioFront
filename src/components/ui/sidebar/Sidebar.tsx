@@ -9,19 +9,26 @@ import {
   IoCloseOutline,
   IoCloudUploadOutline,
   IoListOutline,
+  IoLocationOutline,
   IoLogInOutline,
   IoLogOutOutline,
   IoPeopleOutline,
   IoPersonOutline,
   IoSearchOutline,
+  IoSettingsOutline,
   IoShirtOutline,
   IoTicketOutline,
 } from "react-icons/io5";
 
 import { useUIStore } from "@/store";
+import { useNavigationStore } from "@/store/navigation/navigation-store";
 import { logout } from "@/actions";
 
-export const Sidebar = () => {
+interface Props {
+  isContactPagePublished?: boolean;
+}
+
+export const Sidebar = ({ isContactPagePublished = false }: Props) => {
   const isSideMenuOpen = useUIStore((state) => state.isSideMenuOpen);
   const closeMenu = useUIStore((state) => state.closeSideMenu);
 
@@ -31,12 +38,14 @@ export const Sidebar = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const startLoading = useNavigationStore((s) => s.startLoading);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = searchQuery.trim();
     if (!trimmed) return;
     closeMenu();
+    startLoading();
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
@@ -58,7 +67,7 @@ export const Sidebar = () => {
       {/* Sidemenu */}
       <nav
         className={clsx(
-          "fixed p-5 right-0 top-0 w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300 flex flex-col",
+          "fixed p-5 right-0 top-0 w-full sm:w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300 flex flex-col",
           {
             "translate-x-full": !isSideMenuOpen,
           }
@@ -84,6 +93,17 @@ export const Sidebar = () => {
 
         {/* Menú */}
         <div className="overflow-y-auto flex-1 pb-5">
+
+        {isContactPagePublished && (
+          <Link
+            href="/contact"
+            onClick={() => closeMenu()}
+            className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          >
+            <IoLocationOutline size={30} />
+            <span className="ml-3 text-xl">Contacto</span>
+          </Link>
+        )}
 
         {isAuthenticated && (
           <>
@@ -176,6 +196,24 @@ export const Sidebar = () => {
             >
               <IoListOutline size={30} />
               <span className="ml-3 text-xl">Categorías</span>
+            </Link>
+
+            <Link
+              href="/admin/contact"
+              onClick={() => closeMenu()}
+              className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              <IoLocationOutline size={30} />
+              <span className="ml-3 text-xl">Página de Contacto</span>
+            </Link>
+
+            <Link
+              href="/admin/config"
+              onClick={() => closeMenu()}
+              className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              <IoSettingsOutline size={30} />
+              <span className="ml-3 text-xl">Configuración</span>
             </Link>
           </>
         )}

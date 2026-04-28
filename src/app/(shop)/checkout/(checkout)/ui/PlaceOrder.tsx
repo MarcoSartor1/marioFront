@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 
-import { placeOrder } from '@/actions';
+import { placeOrder, verifyCartProducts } from '@/actions';
+import type { PriceChangeIssue, StockIssue } from '@/actions';
 import { useAddressStore, useCartStore } from "@/store";
 import { currencyFormat } from '@/utils';
 import type { PaymentMethod } from '@/interfaces';
@@ -15,14 +16,17 @@ export const PlaceOrder = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mercadopago');
+  const [priceWarning, setPriceWarning] = useState<PriceChangeIssue[]>([]);
+  const [stockErrors, setStockErrors] = useState<StockIssue[]>([]);
 
   const address = useAddressStore((state) => state.address);
 
-  const { itemsInCart, subTotal, tax, total } = useCartStore((state) =>
+  const { itemsInCart, total } = useCartStore((state) =>
     state.getSummaryInformation()
   );
   const cart = useCartStore(state => state.cart);
   const clearCart = useCartStore(state => state.clearCart);
+  const updateCartPrices = useCartStore(state => state.updateCartPrices);
 
   useEffect(() => {
     setLoaded(true);
@@ -30,6 +34,38 @@ export const PlaceOrder = () => {
 
   const onPlaceOrder = async () => {
     setIsPlacingOrder(true);
+    setErrorMessage('');
+
+    const cartItems = cart.map(p => ({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      price: p.price,
+      quantity: p.quantity,
+    }));
+
+    const verification = await verifyCartProducts(cartItems);
+
+    if (verification.stockIssues.length > 0) {
+      setStockErrors(verification.stockIssues);
+      setPriceWarning([]);
+      setIsPlacingOrder(false);
+      return;
+    }
+
+    if (verification.priceChanges.length > 0) {
+      const priceMap = Object.fromEntries(
+        verification.priceChanges.map(c => [c.productId, c.newPrice])
+      );
+      updateCartPrices(priceMap);
+      setPriceWarning(verification.priceChanges);
+      setStockErrors([]);
+      setIsPlacingOrder(false);
+      return;
+    }
+
+    setPriceWarning([]);
+    setStockErrors([]);
 
     const productsToOrder = cart.map(product => ({
       productId: product.id,
@@ -52,6 +88,11 @@ export const PlaceOrder = () => {
   if (!loaded) {
     return <p>Cargando...</p>;
   }
+
+  const hasStockBlocker = stockErrors.length > 0;
+  const buttonLabel = priceWarning.length > 0
+    ? 'Confirmar con nuevos precios'
+    : 'Colocar orden';
 
   return (
     <div className="bg-white rounded-xl shadow-xl p-7">
@@ -131,16 +172,53 @@ export const PlaceOrder = () => {
         </span>
       </p>
 
+      {/* Stock error */}
+      {stockErrors.length > 0 && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <p className="font-semibold mb-1">Sin stock disponible</p>
+          <ul className="list-disc list-inside space-y-0.5">
+            {stockErrors.map(e => (
+              <li key={e.productId}>
+                <span className="font-medium">{e.title}</span>:{' '}
+                {e.available === 0
+                  ? 'sin stock'
+                  : `quedan ${e.available} unidad${e.available !== 1 ? 'es' : ''}`}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs">Modificá tu carrito para continuar.</p>
+        </div>
+      )}
+
+      {/* Price change warning */}
+      {priceWarning.length > 0 && (
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-800">
+          <p className="font-semibold mb-1">Se actualizaron precios</p>
+          <ul className="list-disc list-inside space-y-0.5">
+            {priceWarning.map(c => (
+              <li key={c.productId}>
+                <span className="font-medium">{c.title}</span>:{' '}
+                {currencyFormat(c.oldPrice)} → {currencyFormat(c.newPrice)}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs">
+            Por favor revisá el nuevo total antes de confirmar tu orden.
+          </p>
+        </div>
+      )}
+
       <p className="text-red-500">{errorMessage}</p>
 
       <button
         onClick={onPlaceOrder}
+        disabled={isPlacingOrder || hasStockBlocker}
         className={clsx({
-          'btn-primary': !isPlacingOrder,
-          'btn-disabled': isPlacingOrder,
+          'btn-primary': !isPlacingOrder && !hasStockBlocker,
+          'btn-disabled': isPlacingOrder || hasStockBlocker,
         })}
       >
-        Colocar orden
+        {isPlacingOrder ? 'Procesando...' : buttonLabel}
       </button>
     </div>
   );

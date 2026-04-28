@@ -1,9 +1,9 @@
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { IoSadOutline } from 'react-icons/io5';
 
-import { getProductsByCategory } from '@/actions';
+import { getProductsByCategory, syncXubioProducts } from '@/actions';
 import { Pagination, ProductGrid, Title } from '@/components';
 
 interface Props {
@@ -20,6 +20,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
 
   const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
+
+  await syncXubioProducts().catch(() => null);
 
   const { products, totalPages } = await getProductsByCategory({
     page,

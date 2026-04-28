@@ -16,10 +16,12 @@ interface Category {
 interface Props {
   storeName: string;
   logoUrl: string | null;
+  showTitleWithLogo: boolean;
   categories: Category[];
+  isContactPagePublished: boolean;
 }
 
-export const TopMenu = ({ storeName, logoUrl, categories }: Props) => {
+export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isContactPagePublished }: Props) => {
 
   const openSideMenu = useUIStore((state) => state.openSideMenu);
   const totalItemsInCart = useCartStore((state) => state.getTotalItems());
@@ -48,14 +50,21 @@ export const TopMenu = ({ storeName, logoUrl, categories }: Props) => {
       <div>
         <Link href="/" className="flex items-center gap-2">
           {logoUrl ? (
-            <Image
-              src={logoUrl}
-              alt={storeName}
-              width={120}
-              height={40}
-              className="object-contain"
-              priority
-            />
+            <>
+              <Image
+                src={logoUrl}
+                alt={storeName}
+                width={160}
+                height={40}
+                className="object-contain h-10 w-auto"
+                priority
+              />
+              {showTitleWithLogo && (
+                <span className={`${titleFont.className} antialiased font-bold hidden sm:inline`}>
+                  {storeName}
+                </span>
+              )}
+            </>
           ) : (
             <>
               <span className={`${titleFont.className} antialiased font-bold`}>
@@ -70,7 +79,7 @@ export const TopMenu = ({ storeName, logoUrl, categories }: Props) => {
       </div>
 
       {/* Center Menu */}
-      <div className="hidden sm:block" ref={dropdownRef}>
+      <div className="hidden sm:flex items-center" ref={dropdownRef}>
         <div
           className="relative inline-block"
           onMouseEnter={() => setShowDropdown(true)}
@@ -99,6 +108,12 @@ export const TopMenu = ({ storeName, logoUrl, categories }: Props) => {
             </div>
           )}
         </div>
+
+        {isContactPagePublished && (
+          <Link href="/contact" className="m-2 p-2 rounded-md transition-all hover:bg-gray-100">
+            Contacto
+          </Link>
+        )}
       </div>
 
       {/* Search, Cart, Menu */}

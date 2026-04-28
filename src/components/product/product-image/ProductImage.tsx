@@ -5,8 +5,9 @@ interface Props {
   alt: string;
   className?: React.StyleHTMLAttributes<HTMLImageElement>['className'];
   style?: React.StyleHTMLAttributes<HTMLImageElement>['style'];
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
+  fill?: boolean;
 }
 
 export const ProductImage = ({
@@ -15,20 +16,33 @@ export const ProductImage = ({
   className,
   style,
   width,
-  height
+  height,
+  fill,
 }: Props) => {
 
-  const localSrc = ( src ) 
-    ? src.startsWith('http') // https://urlcompletodelaimagen.jpg
+  const localSrc = ( src )
+    ? src.startsWith('http')
       ? src
       : `/products/${ src }`
     : '/imgs/placeholder.jpg';
+
+  if (fill) {
+    return (
+      <Image
+        src={ localSrc }
+        alt={ alt }
+        fill
+        className={ className }
+        style={ style }
+      />
+    );
+  }
 
   return (
     <Image
       src={ localSrc }
       width={ width }
-      height={ height}
+      height={ height }
       alt={ alt }
       className={ className }
       style={ style }

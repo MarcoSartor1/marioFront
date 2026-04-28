@@ -4,6 +4,7 @@ const defaultConfig = {
   id: '',
   name: 'Mi Tienda',
   logoUrl: null,
+  showTitleWithLogo: false,
   primaryColor: '#3b82f6',
   secondaryColor: '#1e293b',
   bankName: null,
@@ -15,13 +16,20 @@ const defaultConfig = {
   shippingInfo: null,
   contactEmail: null,
   contactPhone: null,
+  address: null,
+  mapLat: null,
+  mapLng: null,
+  businessHours: null,
+  whatsapp: null,
+  isContactPagePublished: false,
+  isPublished: true,
   updatedAt: new Date(),
 };
 
 export const getStoreConfig = async () => {
   try {
     const resp = await fetch(`${process.env.API_URL}/config`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: ['store-config'] },
     });
 
     if (!resp.ok) return { ok: true, config: defaultConfig };

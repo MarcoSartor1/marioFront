@@ -12,6 +12,9 @@ export * from './category/create-update-category';
 export * from './category/delete-category';
 
 export * from './config/get-store-config';
+export * from './config/update-published-status';
+export * from './config/update-contact-config';
+export * from './config/update-logo-config';
 
 export * from './country/get-countries';
 
@@ -36,6 +39,7 @@ export * from './product/get-stock-by-slug';
 export * from './product/product-pagination';
 export * from './product/toggle-product-publish';
 export * from './product/sync-xubio-products';
+export * from './product/verify-cart-products';
 
 
 export * from './user/change-user-role';

@@ -1,31 +1,32 @@
-export const revalidate = 60; // 60 segundos
-
-
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 
-import { getPaginatedProductsWithImages } from '@/actions';
+import { getPaginatedProductsWithImages, syncXubioProducts } from '@/actions';
 import { Pagination, ProductGrid, Title } from '@/components';
-
-
+import { HomeSearchInput } from './ui/HomeSearchInput';
 
 interface Props {
   searchParams: {
-    page?: string; 
+    page?: string;
+    q?: string;
   }
 }
 
-
 export default async function Home({ searchParams }: Props) {
 
-  const page = searchParams.page ? parseInt( searchParams.page ) : 1;
+  const page = searchParams.page ? parseInt(searchParams.page) : 1;
+  const query = searchParams.q?.trim() ?? '';
 
-  const { products, currentPage, totalPages } = await getPaginatedProductsWithImages({ page });
+  await syncXubioProducts().catch(() => null);
 
+  const { products, totalPages } = await getPaginatedProductsWithImages({
+    page,
+    ...(query ? { search: query } : {}),
+  });
 
-  if ( products.length === 0 ) {
+  if (products.length === 0 && !query) {
     redirect('/empty');
   }
-
 
   return (
     <>
@@ -35,13 +36,20 @@ export default async function Home({ searchParams }: Props) {
         className="mb-2"
       />
 
-      <ProductGrid 
-        products={ products }
-      />
+      <Suspense>
+        <HomeSearchInput />
+      </Suspense>
 
-
-      <Pagination totalPages={ totalPages } />
-      
+      {products.length === 0 && query ? (
+        <p className="text-gray-500 mt-4 text-center">
+          No se encontraron productos para &ldquo;{query}&rdquo;.
+        </p>
+      ) : (
+        <>
+          <ProductGrid products={products} />
+          <Pagination totalPages={totalPages} />
+        </>
+      )}
     </>
   );
 }

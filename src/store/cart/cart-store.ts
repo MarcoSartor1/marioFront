@@ -18,6 +18,7 @@ interface State {
   removeProduct: (product: CartProduct) => void;
 
   clearCart: () => void;
+  updateCartPrices: (priceMap: Record<string, number>) => void;
 }
 
 export const useCartStore = create<State>()(
@@ -102,6 +103,11 @@ export const useCartStore = create<State>()(
 
       clearCart: () => {
         set({ cart: [] });
+      },
+
+      updateCartPrices: (priceMap: Record<string, number>) => {
+        const { cart } = get();
+        set({ cart: cart.map(item => ({ ...item, price: priceMap[item.id] ?? item.price })) });
       },
     }),
 

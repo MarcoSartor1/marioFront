@@ -14,6 +14,7 @@ import { getStoreConfig } from "@/actions/config/get-store-config";
 export async function generateMetadata(): Promise<Metadata> {
   const result = await getStoreConfig();
   const storeName = result.config?.name || STORE_NAME;
+  const logoUrl = result.config?.logoUrl ?? null;
 
   return {
     title: {
@@ -21,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: `Home - ${storeName}`,
     },
     description: "Una tienda virtual de productos",
+    ...(logoUrl ? { icons: { icon: logoUrl, apple: logoUrl } } : {}),
   };
 }
 

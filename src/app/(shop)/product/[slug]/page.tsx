@@ -1,4 +1,4 @@
-export const revalidate = 604800; //7 días
+export const dynamic = 'force-dynamic';
 import { Metadata, ResolvingMetadata } from "next";
 
 import { notFound } from "next/navigation";
@@ -11,7 +11,7 @@ import {
   SizeSelector,
   StockLabel,
 } from "@/components";
-import { getProductBySlug } from "@/actions";
+import { getProductBySlug, syncXubioProducts } from "@/actions";
 import { AddToCart } from './ui/AddToCart';
 
 interface Props {
@@ -47,6 +47,9 @@ export async function generateMetadata(
 
 export default async function ProductBySlugPage({ params }: Props) {
   const { slug } = params;
+
+  await syncXubioProducts().catch(() => null);
+
   const product = await getProductBySlug(slug);
 
   if (!product) {
