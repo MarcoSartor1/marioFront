@@ -1,13 +1,13 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import type { Address, PaymentMethod, Size } from '@/interfaces';
+import type { Address, PaymentMethod } from '@/interfaces';
 import { apiFetch } from '@/lib/api';
 
 interface ProductToOrder {
   productId: string;
   quantity: number;
-  size: Size;
+  size: string;
   price: number;
 }
 

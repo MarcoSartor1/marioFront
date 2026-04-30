@@ -71,7 +71,7 @@ export const TransferPaymentSection = ({ orderId, paymentReceipt: initialReceipt
       return;
     }
 
-    setReceipt(result.paymentReceipt);
+    setReceipt(result.paymentReceipt ?? null);
   };
 
   return (

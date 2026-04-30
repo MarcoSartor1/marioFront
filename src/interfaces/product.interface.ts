@@ -4,12 +4,11 @@ export interface Product {
   images: string[];
   inStock: number;
   price: number;
-  sizes: Size[];
+  sizes: string[];
   slug: string;
   tags: string[];
   title: string;
-  //todo: type: Type;
-  gender: Category;
+  gender?: string;
 }
 
 export interface CartProduct {
@@ -18,7 +17,7 @@ export interface CartProduct {
   title: string;
   price: number;
   quantity: number;
-  size: Size;
+  size: string;
   image: string;
 }
 

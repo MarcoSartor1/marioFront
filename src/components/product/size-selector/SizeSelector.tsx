@@ -1,12 +1,11 @@
-import type { Size } from '@/interfaces';
 import clsx from 'clsx';
 
 
 interface Props {
-  selectedSize?: Size;
-  availableSizes: Size[];  // ['SX', 'M', 'XL', 'XXL']
+  selectedSize?: string;
+  availableSizes: string[];
 
-  onSizeChanged: ( size: Size ) => void;
+  onSizeChanged: ( size: string ) => void;
 }
 
 
