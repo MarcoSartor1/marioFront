@@ -1,9 +1,8 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import prisma from '@/lib/prisma';
+import { apiFetch } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
-import bcryptjs from 'bcryptjs';
 
 interface UpdateProfileData {
   name?: string;
@@ -17,40 +16,25 @@ export const updateProfile = async (data: UpdateProfileData) => {
     return { ok: false, message: 'No autenticado' };
   }
 
-  const userId = (session.user as any).id;
+  if (data.newPassword && !data.currentPassword) {
+    return { ok: false, message: 'Debes ingresar tu contraseña actual para cambiarla' };
+  }
+
+  const payload: Record<string, string> = {};
+  if (data.name) payload.name = data.name;
+  if (data.newPassword) {
+    payload.currentPassword = data.currentPassword!;
+    payload.newPassword = data.newPassword;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return { ok: false, message: 'No hay cambios para guardar' };
+  }
 
   try {
-    const updateData: Record<string, string> = {};
-
-    if (data.name) {
-      updateData.name = data.name;
-    }
-
-    if (data.newPassword) {
-      if (!data.currentPassword) {
-        return { ok: false, message: 'Debes ingresar tu contraseña actual para cambiarla' };
-      }
-
-      const dbUser = await prisma.user.findUnique({ where: { id: userId } });
-      if (!dbUser) {
-        return { ok: false, message: 'Usuario no encontrado' };
-      }
-
-      const passwordMatch = bcryptjs.compareSync(data.currentPassword, dbUser.password);
-      if (!passwordMatch) {
-        return { ok: false, message: 'La contraseña actual es incorrecta' };
-      }
-
-      updateData.password = bcryptjs.hashSync(data.newPassword, 10);
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      return { ok: false, message: 'No hay cambios para guardar' };
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
+    await apiFetch('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
     });
 
     revalidatePath('/profile');

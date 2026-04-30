@@ -1,7 +1,7 @@
 'use server';
 
 import { auth } from '@/auth.config';
-import prisma from '@/lib/prisma';
+import { apiFetch } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 
 
@@ -18,24 +18,17 @@ export const changeUserRole = async( userId: string, role: string ) => {
 
   try {
 
-    const newRole = role === 'admin' ? 'admin':'user';
+    const newRole = role === 'admin' ? 'admin' : 'user';
 
-
-    const user = await prisma.user.update({
-      where: {
-        id: userId
-      },
-      data: {
-        role: newRole
-      }
-    })
+    await apiFetch(`/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role: newRole }),
+    });
 
     revalidatePath('/admin/users');
 
-    return {
-      ok: true
-    }
-    
+    return { ok: true };
+
   } catch (error) {
     console.log(error);
     return {
@@ -43,7 +36,5 @@ export const changeUserRole = async( userId: string, role: string ) => {
       message: 'No se pudo actualizar el role, revisar logs'
     }
   }
-
-
 
 }

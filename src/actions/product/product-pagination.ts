@@ -1,7 +1,5 @@
 'use server';
 
-import { Gender } from '@prisma/client';
-
 interface NestProduct {
   id: string;
   title: string;
@@ -18,7 +16,7 @@ interface NestProduct {
 interface PaginationOptions {
   page?: number;
   take?: number;
-  gender?: Gender;
+  gender?: string;
   category?: string;
   search?: string;
 }
