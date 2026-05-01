@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: '/auth/login',
     newUser: '/auth/new-account',
