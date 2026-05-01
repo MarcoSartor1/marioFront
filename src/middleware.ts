@@ -9,10 +9,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Leer el JWT desde la cookie (v5: @auth/core/jwt)
+  // En producción (HTTPS) NextAuth v5 usa el prefijo __Secure- en la cookie
+  const cookieName =
+    process.env.NODE_ENV === 'production'
+      ? '__Secure-authjs.session-token'
+      : 'authjs.session-token';
+
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET!,
+    cookieName,
   });
   const isAdmin = (token?.data as any)?.role === 'admin';
 
