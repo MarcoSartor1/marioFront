@@ -1,6 +1,6 @@
 'use server';
 
-import { apiGet } from '@/lib/api';
+const API_URL = process.env.API_URL!;
 
 interface Country {
   id: string;
@@ -9,7 +9,9 @@ interface Country {
 
 export const getCountries = async (): Promise<Country[]> => {
   try {
-    const data = await apiGet<unknown>('/countries');
+    const resp = await fetch(`${API_URL}/countries`, { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`GET /countries → ${resp.status}`);
+    const data = await resp.json();
     const list = Array.isArray(data) ? data : (data as any)?.data ?? [];
     return list as Country[];
   } catch (error) {

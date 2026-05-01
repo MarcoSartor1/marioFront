@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Title } from "@/components";
 import { AddressForm } from "./ui/AddressForm";
 
