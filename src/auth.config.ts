@@ -45,19 +45,22 @@ export const authConfig: NextAuthConfig = {
 
         const { email, password } = parsedCredentials.data;
 
-        // Delegar autenticación al backend NestJS
-        const resp = await fetch(`${ process.env.API_URL }/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
+        try {
+          const resp = await fetch(`${ process.env.API_URL }/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
 
-        if ( !resp.ok ) return null;
+          if ( !resp.ok ) return null;
 
-        // El backend devuelve { id, name, email, role, token }
-        const user = await resp.json();
+          // El backend devuelve { id, name, email, role, token }
+          const user = await resp.json();
 
-        return user;
+          return user;
+        } catch {
+          return null;
+        }
       },
     }),
 
