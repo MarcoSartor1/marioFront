@@ -17,7 +17,7 @@ export async function authenticate(
     return 'Success';
 
   } catch (error) {
-    if (error instanceof AuthError) {
+    if (error instanceof AuthError || (error as any)?.type === 'CredentialsSignin') {
       return 'CredentialsSignin';
     }
     throw error;
