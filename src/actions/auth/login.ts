@@ -1,7 +1,7 @@
 'use server';
 
 
-import { AuthError } from 'next-auth';
+import { AuthError } from '@auth/core/errors';
 import { signIn } from '@/auth.config';
 
 export async function authenticate(
