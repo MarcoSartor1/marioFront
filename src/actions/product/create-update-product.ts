@@ -49,7 +49,7 @@ export const createUpdateProduct = async (formData: FormData) => {
   const token = (session?.user as any)?.token as string | undefined;
 
   try {
-    // Subir imágenes a Cloudinary
+    // Subir imágenes nuevas a Cloudinary
     const imageFiles = formData.getAll('images') as File[];
     const validFiles = imageFiles.filter((f) => f.size > 0);
     const uploadedImages = validFiles.length > 0 ? await uploadImages(validFiles) : [];
@@ -57,6 +57,9 @@ export const createUpdateProduct = async (formData: FormData) => {
     if (uploadedImages === null) {
       return { ok: false, message: 'No se pudo cargar las imágenes' };
     }
+
+    const existingImageUrls = formData.getAll('existingImages') as string[];
+    const allImages = [...existingImageUrls, ...(uploadedImages.filter(Boolean) as string[])];
 
     const body: Record<string, unknown> = {
       title: rest.title,
@@ -70,7 +73,7 @@ export const createUpdateProduct = async (formData: FormData) => {
     if (rest.sizes && rest.sizes.length > 0) body.sizes = rest.sizes;
     if (tagsArray.length > 0) body.tags = tagsArray;
     if (rest.gender) body.gender = rest.gender;
-    if (uploadedImages.length > 0) body.images = uploadedImages.filter(Boolean);
+    body.images = allImages;
 
     const resp = await fetch(
       `${process.env.API_URL}/products${id ? `/${id}` : ''}`,

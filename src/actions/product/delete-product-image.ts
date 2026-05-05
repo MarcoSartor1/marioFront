@@ -1,14 +1,13 @@
 'use server';
 
 import { v2 as cloudinary } from 'cloudinary';
-import { revalidatePath } from 'next/cache';
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const deleteProductImage = async (imageId: number, imageUrl: string) => {
+export const deleteProductImage = async (imageUrl: string) => {
   if (!imageUrl.startsWith('http')) {
     return { ok: false, error: 'No se pueden borrar imagenes de FS' };
   }
@@ -17,9 +16,6 @@ export const deleteProductImage = async (imageId: number, imageUrl: string) => {
 
   try {
     await cloudinary.uploader.destroy(imageName);
-
-    revalidatePath('/admin/products');
-
     return { ok: true };
   } catch (error) {
     console.log(error);

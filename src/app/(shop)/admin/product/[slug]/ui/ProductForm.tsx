@@ -40,6 +40,9 @@ export const ProductForm = ({ product, categories }: Props) => {
     product.ProductImage ?? []
   );
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const totalPhotos = existingImages.length + pendingFiles.length;
   const remainingSlots = MAX_PHOTOS - totalPhotos;
@@ -90,13 +93,17 @@ export const ProductForm = ({ product, categories }: Props) => {
   };
 
   const onDeleteExisting = async (image: ProductWithImage) => {
-    const { ok } = await deleteProductImage(image.id, image.url);
+    const { ok } = await deleteProductImage(image.url);
     if (ok) {
       setExistingImages((prev) => prev.filter((img) => img.id !== image.id));
     }
   };
 
   const onSubmit = async (data: FormInputs) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
     const formData = new FormData();
     const { images: _images, ...productToSave } = data;
 
@@ -114,17 +121,35 @@ export const ProductForm = ({ product, categories }: Props) => {
     if (showSizes && productToSave.sizes.length > 0)
       formData.append("sizes", productToSave.sizes.toString());
 
+    for (const img of existingImages) {
+      formData.append("existingImages", img.url);
+    }
+
     for (const file of pendingFiles) {
       formData.append("images", file);
     }
 
-    const { ok, product: updatedProduct } = await createUpdateProduct(formData);
+    const { ok, message, product: updatedProduct } = await createUpdateProduct(formData);
+
+    setIsLoading(false);
 
     if (!ok) {
-      alert("Producto no se pudo guardar");
+      setErrorMessage(message ?? "No se pudo guardar el producto");
       return;
     }
 
+    setPendingFiles([]);
+    if (updatedProduct?.images) {
+      setExistingImages(
+        updatedProduct.images.map((url: string, index: number) => ({
+          id: index,
+          url,
+          productId: updatedProduct.id,
+        }))
+      );
+    }
+
+    setSuccessMessage("Producto guardado correctamente");
     router.replace(`/admin/product/${updatedProduct?.slug}`);
   };
 
@@ -217,7 +242,20 @@ export const ProductForm = ({ product, categories }: Props) => {
           </select>
         </div>
 
-        <button className="btn-primary w-full">Guardar</button>
+        {errorMessage && (
+          <p className="text-red-500 text-sm mb-2">{errorMessage}</p>
+        )}
+
+        {successMessage && (
+          <p className="text-green-600 text-sm mb-2">{successMessage}</p>
+        )}
+
+        <button
+          disabled={isLoading}
+          className={clsx("btn-primary w-full", { "opacity-70 cursor-not-allowed": isLoading })}
+        >
+          {isLoading ? "Guardando..." : "Guardar"}
+        </button>
       </div>
 
       {/* Columna derecha */}
