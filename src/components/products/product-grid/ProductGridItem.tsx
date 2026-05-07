@@ -59,7 +59,7 @@ export const ProductGridItem = ( { product }: Props ) => {
 
       <div className="p-4 flex flex-col flex-1 gap-2">
         <Link
-          className="hover:text-blue-600 text-sm font-medium line-clamp-2"
+          className="hover:text-blue-600 text-sm font-medium line-clamp-2 uppercase"
           onClick={ startLoading }
           href={ `/product/${ product.slug }` }>
           { product.title }

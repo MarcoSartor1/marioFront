@@ -34,10 +34,10 @@ export async function generateMetadata(
   // const previousImages = (await parent).openGraph?.images || []
 
   return {
-    title: product?.title ?? "Producto no encontrado",
+    title: product?.title?.toUpperCase() ?? "PRODUCTO NO ENCONTRADO",
     description: product?.description ?? "",
     openGraph: {
-      title: product?.title ?? "Producto no encontrado",
+      title: product?.title?.toUpperCase() ?? "PRODUCTO NO ENCONTRADO",
       description: product?.description ?? "",
       // images: [], // https://misitioweb.com/products/image.png
       images: [ `/products/${ product?.images[1] }`],
@@ -79,7 +79,7 @@ export default async function ProductBySlugPage({ params }: Props) {
       <div className="col-span-1 px-5">
         <StockLabel slug={product.slug} />
 
-        <h1 className={` ${titleFont.className} antialiased font-bold text-xl`}>
+        <h1 className={` ${titleFont.className} antialiased font-bold text-xl uppercase`}>
           {product.title}
         </h1>
 

@@ -333,7 +333,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                 <tbody>
                   {viewOrder.products.map((p, i) => (
                     <tr key={i} className="border-b last:border-0">
-                      <td className="py-2 text-gray-800">{p.title}</td>
+                      <td className="py-2 text-gray-800 uppercase">{p.title}</td>
                       <td className="py-2 text-center text-gray-600">{p.size ?? '—'}</td>
                       <td className="py-2 text-center text-gray-600">{p.quantity}</td>
                       <td className="py-2 text-right text-gray-800">${p.price.toFixed(2)}</td>

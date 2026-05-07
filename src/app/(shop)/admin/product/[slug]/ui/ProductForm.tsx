@@ -10,6 +10,50 @@ import { ProductImage } from "@/components";
 
 const MAX_PHOTOS = 5;
 
+function getCloudinaryAngle(url: string): number {
+  const m = url.match(/\/a_(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function setCloudinaryAngle(url: string, angle: number): string {
+  const normalized = ((angle % 360) + 360) % 360;
+  if (url.includes("/a_")) {
+    if (normalized === 0) return url.replace(/\/a_\d+/, "");
+    return url.replace(/a_\d+/, `a_${normalized}`);
+  }
+  if (normalized === 0) return url;
+  return url.replace("/upload/", `/upload/a_${normalized}/`);
+}
+
+async function rotateFileByDegrees(file: File, degrees: number): Promise<File> {
+  if (degrees === 0) return file;
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const rad = (degrees * Math.PI) / 180;
+      const canvas = document.createElement("canvas");
+      if (degrees === 90 || degrees === 270) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      const ctx = canvas.getContext("2d")!;
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(rad);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      URL.revokeObjectURL(objUrl);
+      canvas.toBlob(
+        (blob) => resolve(new File([blob!], file.name, { type: file.type })),
+        file.type
+      );
+    };
+    img.src = objUrl;
+  });
+}
+
 interface Props {
   product: Partial<Product> & { ProductImage?: ProductWithImage[] };
   categories: Category[];
@@ -40,6 +84,8 @@ export const ProductForm = ({ product, categories }: Props) => {
     product.ProductImage ?? []
   );
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [existingRotations, setExistingRotations] = useState<Record<string, number>>({});
+  const [pendingRotations, setPendingRotations] = useState<Record<number, number>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -90,12 +136,40 @@ export const ProductForm = ({ product, categories }: Props) => {
 
   const removePendingFile = (index: number) => {
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+    setPendingRotations((prev) => {
+      const next: Record<number, number> = {};
+      Object.entries(prev).forEach(([key, val]) => {
+        const k = parseInt(key, 10);
+        if (k < index) next[k] = val;
+        else if (k > index) next[k - 1] = val;
+      });
+      return next;
+    });
+  };
+
+  const rotateExisting = (url: string) => {
+    setExistingRotations((prev) => ({
+      ...prev,
+      [url]: ((prev[url] ?? 0) + 90) % 360,
+    }));
+  };
+
+  const rotatePending = (index: number) => {
+    setPendingRotations((prev) => ({
+      ...prev,
+      [index]: ((prev[index] ?? 0) + 90) % 360,
+    }));
   };
 
   const onDeleteExisting = async (image: ProductWithImage) => {
     const { ok } = await deleteProductImage(image.url);
     if (ok) {
       setExistingImages((prev) => prev.filter((img) => img.id !== image.id));
+      setExistingRotations((prev) => {
+        const next = { ...prev };
+        delete next[image.url];
+        return next;
+      });
     }
   };
 
@@ -122,10 +196,20 @@ export const ProductForm = ({ product, categories }: Props) => {
       formData.append("sizes", productToSave.sizes.toString());
 
     for (const img of existingImages) {
-      formData.append("existingImages", img.url);
+      const userRotation = existingRotations[img.url] ?? 0;
+      if (userRotation > 0) {
+        const storedAngle = getCloudinaryAngle(img.url);
+        const finalAngle = (storedAngle + userRotation) % 360;
+        formData.append("existingImages", setCloudinaryAngle(img.url, finalAngle));
+      } else {
+        formData.append("existingImages", img.url);
+      }
     }
 
-    for (const file of pendingFiles) {
+    const rotatedFiles = await Promise.all(
+      pendingFiles.map((file, i) => rotateFileByDegrees(file, pendingRotations[i] ?? 0))
+    );
+    for (const file of rotatedFiles) {
       formData.append("images", file);
     }
 
@@ -139,6 +223,8 @@ export const ProductForm = ({ product, categories }: Props) => {
     }
 
     setPendingFiles([]);
+    setExistingRotations({});
+    setPendingRotations({});
     if (updatedProduct?.images) {
       setExistingImages(
         updatedProduct.images.map((url: string, index: number) => ({
@@ -342,20 +428,36 @@ export const ProductForm = ({ product, categories }: Props) => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {existingImages.map((image) => (
                 <div key={image.id}>
-                  <ProductImage
-                    alt={product.title ?? ""}
-                    src={image.url}
-                    width={300}
-                    height={300}
-                    className="rounded-t shadow-md object-cover w-full aspect-square"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onDeleteExisting(image)}
-                    className="btn-danger w-full rounded-b-xl text-sm py-1"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="overflow-hidden rounded-t shadow-md aspect-square w-full">
+                    <div
+                      className="w-full h-full transition-transform duration-200"
+                      style={{ transform: `rotate(${existingRotations[image.url] ?? 0}deg)` }}
+                    >
+                      <ProductImage
+                        alt={product.title ?? ""}
+                        src={image.url}
+                        width={300}
+                        height={300}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex rounded-b-xl overflow-hidden text-xs">
+                    <button
+                      type="button"
+                      onClick={() => rotateExisting(image.url)}
+                      className="bg-sky-500 hover:bg-sky-600 text-white flex-1 py-1 transition-colors"
+                    >
+                      ↻ Girar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteExisting(image)}
+                      className="bg-red-500 hover:bg-red-600 text-white flex-1 py-1 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -368,20 +470,32 @@ export const ProductForm = ({ product, categories }: Props) => {
             <span className="text-sm text-gray-500 mb-2 block">Fotos por agregar</span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {pendingFiles.map((file, index) => (
-                <div key={index}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="rounded-t shadow-md object-cover w-full aspect-square"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePendingFile(index)}
-                    className="btn-danger w-full rounded-b-xl text-sm py-1"
-                  >
-                    Quitar
-                  </button>
+                <div key={`${file.name}-${index}`}>
+                  <div className="overflow-hidden rounded-t shadow-md aspect-square w-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="object-cover w-full h-full transition-transform duration-200"
+                      style={{ transform: `rotate(${pendingRotations[index] ?? 0}deg)` }}
+                    />
+                  </div>
+                  <div className="flex rounded-b-xl overflow-hidden text-xs">
+                    <button
+                      type="button"
+                      onClick={() => rotatePending(index)}
+                      className="bg-sky-500 hover:bg-sky-600 text-white flex-1 py-1 transition-colors"
+                    >
+                      ↻ Girar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(index)}
+                      className="bg-red-500 hover:bg-red-600 text-white flex-1 py-1 transition-colors"
+                    >
+                      Quitar
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

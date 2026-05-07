@@ -113,7 +113,7 @@ const uploadImages = async (images: File[]) => {
         const buffer = await image.arrayBuffer();
         const base64Image = Buffer.from(buffer).toString('base64');
         return cloudinary.uploader
-          .upload(`data:image/png;base64,${base64Image}`)
+          .upload(`data:image/png;base64,${base64Image}`, { format: 'webp' })
           .then((r) => r.secure_url);
       } catch (error) {
         console.log(error);

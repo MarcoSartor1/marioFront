@@ -29,7 +29,7 @@ export const updateLogoConfig = async (formData: FormData) => {
       const mime = logoFile.type || 'image/png';
       const result = await cloudinary.uploader.upload(
         `data:${mime};base64,${base64}`,
-        { folder: 'store-config', public_id: 'logo', overwrite: true, invalidate: true },
+        { folder: 'store-config', public_id: 'logo', overwrite: true, invalidate: true, format: 'webp' },
       );
       logoUrl = result.secure_url;
     }

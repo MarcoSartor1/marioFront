@@ -41,7 +41,7 @@ export const ProductsInCart = () => {
           />
 
           <div>
-            <span>
+            <span className="uppercase">
               { product.size } - {product.title} ({ product.quantity })
             </span>
             
