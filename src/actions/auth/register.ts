@@ -13,6 +13,9 @@ export const registerUser = async( name: string, email: string, password: string
 
     if ( !resp.ok ) {
       const data = await resp.json();
+      if ( resp.status === 429 ) {
+        return { ok: false, message: 'Demasiados intentos. Esperá un momento e intentá de nuevo.' };
+      }
       return { ok: false, message: data.message ?? 'No se pudo crear el usuario' };
     }
 
@@ -20,13 +23,11 @@ export const registerUser = async( name: string, email: string, password: string
 
     return {
       ok: true,
-      user: { id: user.id, name: user.name, email: user.email },
-      message: 'Usuario creado'
-    }
+      user: { id: user.id, name: user.name, email: user.email, emailVerified: user.emailVerified ?? null },
+    };
 
-  } catch (error) {
-    console.log(error);
-    return { ok: false, message: 'No se pudo crear el usuario' }
+  } catch {
+    return { ok: false, message: 'No se pudo crear el usuario' };
   }
 
 }

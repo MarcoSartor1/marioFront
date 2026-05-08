@@ -52,13 +52,14 @@ export const authConfig: NextAuthConfig = {
             body: JSON.stringify({ email, password }),
           });
 
+          if ( resp.status === 429 ) throw new Error('RateLimitExceeded');
           if ( !resp.ok ) return null;
 
-          // El backend devuelve { id, name, email, role, token }
           const user = await resp.json();
 
           return user;
-        } catch {
+        } catch (error) {
+          if ( (error as Error)?.message === 'RateLimitExceeded' ) throw error;
           return null;
         }
       },

@@ -6,6 +6,10 @@ export * from './address/set-user-address';
 export * from './auth/login';
 export * from './auth/logout';
 export * from './auth/register';
+export * from './auth/verify-email';
+export * from './auth/resend-verification';
+export * from './auth/forgot-password';
+export * from './auth/reset-password';
 
 export * from './category/get-categories';
 export * from './category/create-update-category';

@@ -2,7 +2,7 @@
 
 const defaultConfig = {
   id: '',
-  name: 'Mi Tienda',
+  name: 'Costumbres Argentina',
   logoUrl: null,
   showTitleWithLogo: false,
   primaryColor: '#3b82f6',

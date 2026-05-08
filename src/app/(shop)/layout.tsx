@@ -1,5 +1,6 @@
 import { Footer, Sidebar, TopMenuWrapper } from '@/components';
 import { getStoreConfig } from '@/actions/config/get-store-config';
+import { EmailVerificationBanner } from '@/components/ui/EmailVerificationBanner';
 
 export default async function ShopLayout({ children }: {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ export default async function ShopLayout({ children }: {
 
       <TopMenuWrapper />
       <Sidebar isContactPagePublished={isContactPagePublished} />
+      <EmailVerificationBanner />
 
       <div className="px-4 sm:px-10">
         {children}
