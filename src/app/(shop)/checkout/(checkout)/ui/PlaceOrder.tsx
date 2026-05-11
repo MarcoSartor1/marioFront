@@ -70,7 +70,7 @@ export const PlaceOrder = () => {
     const productsToOrder = cart.map(product => ({
       productId: product.id,
       quantity: product.quantity,
-      size: product.size,
+      size: product.size ?? '',
       price: product.price,
     }));
 

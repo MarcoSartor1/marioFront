@@ -8,6 +8,7 @@ interface NestProduct {
   slug: string;
   stock: number;
   sizes: string[];
+  colors: string[];
   gender: string;
   tags: string[];
   images: string[];
