@@ -5,6 +5,7 @@ export interface Product {
   inStock: number;
   price: number;
   sizes: string[];
+  colors: string[];
   slug: string;
   tags: string[];
   title: string;
@@ -17,7 +18,8 @@ export interface CartProduct {
   title: string;
   price: number;
   quantity: number;
-  size: string;
+  size?: string;
+  color?: string;
   image: string;
 }
 
@@ -41,6 +43,7 @@ export interface AdminProduct {
   slug: string;
   stock: number;
   sizes: string[];
+  colors: string[];
   gender: string;
   tags: string[];
   images: string[];

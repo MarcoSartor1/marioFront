@@ -25,6 +25,7 @@ const productSchema = z.object({
     .transform((val) => Number(val.toFixed(0))),
   categoryId: z.string().uuid().optional().nullable(),
   sizes: z.string().optional().transform((val) => (val ? val.split(',').filter(Boolean) : [])),
+  colors: z.string().optional().transform((val) => (val ? val.split(',').filter(Boolean) : [])),
   tags: z.string().optional().default(''),
   gender: z.enum(['men', 'women', 'kid', 'unisex']).optional().nullable(),
 });
@@ -71,6 +72,7 @@ export const createUpdateProduct = async (formData: FormData) => {
 
     if (rest.categoryId) body.categoryId = rest.categoryId;
     if (rest.sizes && rest.sizes.length > 0) body.sizes = rest.sizes;
+    if (rest.colors && rest.colors.length > 0) body.colors = rest.colors;
     if (tagsArray.length > 0) body.tags = tagsArray;
     if (rest.gender) body.gender = rest.gender;
     body.images = allImages;

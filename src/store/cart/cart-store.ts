@@ -16,6 +16,7 @@ interface State {
   addProductTocart: (product: CartProduct) => void;
   updateProductQuantity: (product: CartProduct, quantity: number) => void;
   removeProduct: (product: CartProduct) => void;
+  removeProductById: (productId: string) => void;
 
   clearCart: () => void;
   updateCartPrices: (priceMap: Record<string, number>) => void;
@@ -57,48 +58,54 @@ export const useCartStore = create<State>()(
       addProductTocart: (product: CartProduct) => {
         const { cart } = get();
 
-        // 1. Revisar si el producto existe en el carrito con la talla seleccionada
-        const productInCart = cart.some(
-          (item) => item.id === product.id && item.size === product.size
-        );
+        const isSameVariant = (item: CartProduct) =>
+          item.id === product.id &&
+          item.size === product.size &&
+          item.color === product.color;
 
-        if (!productInCart) {
+        if (!cart.some(isSameVariant)) {
           set({ cart: [...cart, product] });
           return;
         }
 
-        // 2. Se que el producto existe por talla... tengo que incrementar
-        const updatedCartProducts = cart.map((item) => {
-          if (item.id === product.id && item.size === product.size) {
-            return { ...item, quantity: item.quantity + product.quantity };
-          }
-
-          return item;
+        set({
+          cart: cart.map((item) =>
+            isSameVariant(item)
+              ? { ...item, quantity: item.quantity + product.quantity }
+              : item
+          ),
         });
-
-        set({ cart: updatedCartProducts });
       },
 
       updateProductQuantity: (product: CartProduct, quantity: number) => {
         const { cart } = get();
 
-        const updatedCartProducts = cart.map((item) => {
-          if (item.id === product.id && item.size === product.size) {
-            return { ...item, quantity: quantity };
-          }
-          return item;
+        set({
+          cart: cart.map((item) =>
+            item.id === product.id &&
+            item.size === product.size &&
+            item.color === product.color
+              ? { ...item, quantity }
+              : item
+          ),
         });
-
-        set({ cart: updatedCartProducts });
       },
 
       removeProduct: (product: CartProduct) => {
         const { cart } = get();
-        const updatedCartProducts = cart.filter(
-          (item) => item.id !== product.id || item.size !== product.size
-        );
+        set({
+          cart: cart.filter(
+            (item) =>
+              item.id !== product.id ||
+              item.size !== product.size ||
+              item.color !== product.color
+          ),
+        });
+      },
 
-        set({ cart: updatedCartProducts });
+      removeProductById: (productId: string) => {
+        const { cart } = get();
+        set({ cart: cart.filter((item) => item.id !== productId) });
       },
 
       clearCart: () => {

@@ -71,6 +71,7 @@ interface FormInputs {
   gender?: "" | "men" | "women" | "kid" | "unisex";
   categoryId?: string;
   sizes: string[];
+  colors: string[];
   images?: FileList;
 }
 
@@ -80,6 +81,10 @@ export const ProductForm = ({ product, categories }: Props) => {
 
   const hasSizesInitially = (product.sizes ?? []).length > 0;
   const [showSizes, setShowSizes] = useState(hasSizesInitially);
+  const hasColorsInitially = ((product as any).colors ?? []).length > 0;
+  const [showColors, setShowColors] = useState(hasColorsInitially);
+  const [colorName, setColorName] = useState('');
+  const [colorHex, setColorHex] = useState('#000000');
   const [existingImages, setExistingImages] = useState<ProductWithImage[]>(
     product.ProductImage ?? []
   );
@@ -104,6 +109,7 @@ export const ProductForm = ({ product, categories }: Props) => {
       ...product,
       tags: product.tags?.join(", ") ?? "",
       sizes: product.sizes ?? [],
+      colors: (product as any).colors ?? [],
       gender: (product.gender as FormInputs["gender"]) ?? "",
       categoryId: (product as any).categoryId ?? "",
       images: undefined,
@@ -111,6 +117,22 @@ export const ProductForm = ({ product, categories }: Props) => {
   });
 
   watch("sizes");
+  watch("colors");
+
+  const onAddColor = () => {
+    const name = colorName.trim();
+    if (!name) return;
+    const colorStr = `${name}:${colorHex}`;
+    const current = getValues("colors");
+    if (current.includes(colorStr)) return;
+    setValue("colors", [...current, colorStr]);
+    setColorName('');
+    setColorHex('#000000');
+  };
+
+  const onRemoveColor = (colorStr: string) => {
+    setValue("colors", getValues("colors").filter((c) => c !== colorStr));
+  };
 
   const onSizeChanged = (size: string) => {
     const current = new Set(getValues("sizes"));
@@ -194,6 +216,8 @@ export const ProductForm = ({ product, categories }: Props) => {
     if (productToSave.categoryId) formData.append("categoryId", productToSave.categoryId);
     if (showSizes && productToSave.sizes.length > 0)
       formData.append("sizes", productToSave.sizes.toString());
+    if (showColors && productToSave.colors.length > 0)
+      formData.append("colors", productToSave.colors.join(','));
 
     for (const img of existingImages) {
       const userRotation = existingRotations[img.url] ?? 0;
@@ -283,7 +307,7 @@ export const ProductForm = ({ product, categories }: Props) => {
             type="number"
             step="0.01"
             className="p-2 border rounded-md bg-gray-200"
-            {...register("price", { required: true, min: 0 })}
+            {...register("price", { min: 0 })}
           />
         </div>
 
@@ -352,7 +376,7 @@ export const ProductForm = ({ product, categories }: Props) => {
           <input
             type="number"
             className="p-2 border rounded-md bg-gray-200"
-            {...register("inStock", { required: true, min: 0 })}
+            {...register("inStock", { min: 0 })}
           />
         </div>
 
@@ -387,6 +411,81 @@ export const ProductForm = ({ product, categories }: Props) => {
                   <span>{size}</span>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Colores */}
+        <div className="flex flex-col mb-3">
+          <label className="flex items-center gap-2 cursor-pointer mb-2">
+            <input
+              type="checkbox"
+              checked={showColors}
+              onChange={(e) => {
+                setShowColors(e.target.checked);
+                if (!e.target.checked) setValue("colors", []);
+              }}
+              className="w-4 h-4"
+            />
+            <span>Este producto tiene colores</span>
+          </label>
+
+          {showColors && (
+            <div>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Nombre del color"
+                  value={colorName}
+                  onChange={(e) => setColorName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onAddColor())}
+                  className="p-2 border rounded-md bg-gray-200 flex-1 text-sm"
+                />
+                <input
+                  type="color"
+                  value={colorHex}
+                  onChange={(e) => setColorHex(e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border border-gray-300"
+                  title="Seleccionar color"
+                />
+                <button
+                  type="button"
+                  onClick={onAddColor}
+                  disabled={!colorName.trim()}
+                  className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm disabled:opacity-40"
+                >
+                  Agregar
+                </button>
+              </div>
+
+              {getValues("colors").length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {getValues("colors").map((colorStr) => {
+                    const idx = colorStr.lastIndexOf(':');
+                    const name = idx !== -1 ? colorStr.slice(0, idx) : colorStr;
+                    const hex = idx !== -1 && colorStr[idx + 1] === '#' ? colorStr.slice(idx + 1) : '#cccccc';
+                    return (
+                      <div
+                        key={colorStr}
+                        className="flex items-center gap-1 bg-gray-100 border border-gray-300 rounded-full px-2 py-1"
+                      >
+                        <span
+                          className="w-4 h-4 rounded-full border border-gray-400 inline-block flex-shrink-0"
+                          style={{ backgroundColor: hex }}
+                        />
+                        <span className="text-sm">{name}</span>
+                        <button
+                          type="button"
+                          onClick={() => onRemoveColor(colorStr)}
+                          className="text-gray-400 hover:text-red-500 ml-1 text-xs leading-none"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
