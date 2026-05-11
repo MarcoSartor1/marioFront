@@ -5,6 +5,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { IoEyeOutline, IoEyeOffOutline } from 'react-icons/io5';
 import { login, registerUser } from '@/actions';
 
 type FormInputs = {
@@ -16,6 +17,7 @@ type FormInputs = {
 export const RegisterForm = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormInputs>();
 
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
@@ -66,18 +68,28 @@ export const RegisterForm = () => {
       />
 
       <label>Contraseña</label>
-      <input
-        className={ clsx('px-5 py-2 border bg-gray-200 rounded mb-1', { 'border-red-500': errors.password }) }
-        type="password"
-        { ...register('password', {
-          required: 'La contraseña es obligatoria',
-          minLength: { value: 8, message: 'Mínimo 8 caracteres' },
-          validate: {
-            hasUppercase: v => /[A-Z]/.test(v) || 'Debe tener al menos 1 mayúscula',
-            hasNumber: v => /\d/.test(v) || 'Debe tener al menos 1 número',
-          },
-        }) }
-      />
+      <div className="relative mb-1">
+        <input
+          className={ clsx('w-full px-5 py-2 border bg-gray-200 rounded pr-12', { 'border-red-500': errors.password }) }
+          type={ showPassword ? 'text' : 'password' }
+          { ...register('password', {
+            required: 'La contraseña es obligatoria',
+            minLength: { value: 8, message: 'Mínimo 8 caracteres' },
+            validate: {
+              hasUppercase: v => /[A-Z]/.test(v) || 'Debe tener al menos 1 mayúscula',
+              hasNumber: v => /\d/.test(v) || 'Debe tener al menos 1 número',
+            },
+          }) }
+        />
+        <button
+          type="button"
+          onClick={ () => setShowPassword(p => !p) }
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          tabIndex={ -1 }
+        >
+          { showPassword ? <IoEyeOffOutline size={ 20 } /> : <IoEyeOutline size={ 20 } /> }
+        </button>
+      </div>
       { errors.password && (
         <span className="text-red-500 text-sm mb-4">{ errors.password.message }</span>
       ) }
