@@ -20,6 +20,7 @@ export const authConfig: NextAuthConfig = {
     jwt({ token, user }) {
       if ( user ) {
         token.data = user;
+        token.isEmailVerified = (user as any).emailVerified ?? null;
       }
 
       return token;
@@ -27,6 +28,7 @@ export const authConfig: NextAuthConfig = {
 
     session({ session, token }) {
       session.user = token.data as any;
+      (session.user as any).emailVerified = token.isEmailVerified;
       return session;
     },
 
