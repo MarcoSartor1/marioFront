@@ -8,6 +8,12 @@ interface PaginationOptions {
   category: string;
 }
 
+interface NestProductVariant {
+  id: string;
+  color: string;
+  inStock: number;
+}
+
 interface NestProduct {
   id: string;
   title: string;
@@ -17,6 +23,7 @@ interface NestProduct {
   stock: number;
   sizes: string[];
   colors: string[];
+  variants: NestProductVariant[];
   gender: string;
   tags: string[];
   images: string[];
@@ -49,6 +56,7 @@ export const getProductsByCategory = async ({
       products: data.map((p) => ({
         ...p,
         inStock: p.stock,
+        variants: p.variants ?? [],
       })),
     };
   } catch {

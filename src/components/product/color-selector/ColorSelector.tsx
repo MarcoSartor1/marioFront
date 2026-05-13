@@ -1,34 +1,35 @@
 import clsx from 'clsx';
 
+export interface ColorOption {
+  id?: string;
+  label: string;
+  hex: string;
+  disabled?: boolean;
+}
+
 interface Props {
-  selectedColor?: string;
-  availableColors: string[];
-  onColorChanged: (color: string) => void;
+  selectedId?: string;
+  options: ColorOption[];
+  onColorChanged: (option: ColorOption) => void;
 }
 
-function parseColor(colorStr: string): { name: string; hex: string } {
-  const idx = colorStr.lastIndexOf(':');
-  if (idx !== -1 && colorStr[idx + 1] === '#') {
-    return { name: colorStr.slice(0, idx), hex: colorStr.slice(idx + 1) };
-  }
-  return { name: colorStr, hex: '#cccccc' };
-}
-
-export const ColorSelector = ({ selectedColor, availableColors, onColorChanged }: Props) => {
+export const ColorSelector = ({ selectedId, options, onColorChanged }: Props) => {
   return (
     <div className="my-5">
       <h3 className="font-bold mb-3">Color disponible</h3>
       <div className="flex flex-wrap gap-3">
-        {availableColors.map((colorStr) => {
-          const { name, hex } = parseColor(colorStr);
-          const isSelected = colorStr === selectedColor;
+        {options.map((option) => {
+          const key = option.id ?? option.label;
+          const isSelected = key === selectedId;
           return (
             <button
-              key={colorStr}
-              onClick={() => onColorChanged(colorStr)}
-              title={name}
+              key={key}
+              onClick={() => !option.disabled && onColorChanged(option)}
+              title={option.label}
+              disabled={option.disabled}
               className={clsx(
-                'flex flex-col items-center gap-1 group focus:outline-none'
+                'flex flex-col items-center gap-1 focus:outline-none',
+                option.disabled ? 'cursor-not-allowed opacity-50' : 'group'
               )}
             >
               <span
@@ -36,17 +37,19 @@ export const ColorSelector = ({ selectedColor, availableColors, onColorChanged }
                   'w-8 h-8 rounded-full border-2 transition-all',
                   isSelected
                     ? 'border-blue-500 scale-110 shadow-md'
-                    : 'border-gray-300 hover:border-gray-500'
+                    : !option.disabled && 'border-gray-300 hover:border-gray-500',
+                  option.disabled && 'border-gray-200'
                 )}
-                style={{ backgroundColor: hex }}
+                style={{ backgroundColor: option.hex }}
               />
               <span
                 className={clsx(
                   'text-xs transition-colors',
-                  isSelected ? 'font-semibold text-blue-600' : 'text-gray-500'
+                  isSelected && !option.disabled ? 'font-semibold text-blue-600' : 'text-gray-500',
+                  option.disabled && 'line-through'
                 )}
               >
-                {name}
+                {option.label}
               </span>
             </button>
           );

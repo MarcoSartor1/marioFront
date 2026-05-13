@@ -9,6 +9,7 @@ interface ProductToOrder {
   quantity: number;
   size: string;
   price: number;
+  variantId?: string;
 }
 
 export const placeOrder = async (

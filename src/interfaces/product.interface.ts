@@ -1,3 +1,9 @@
+export interface ProductVariant {
+  id: string;
+  color: string;
+  inStock: number;
+}
+
 export interface Product {
   id: string;
   description: string;
@@ -6,6 +12,7 @@ export interface Product {
   price: number;
   sizes: string[];
   colors: string[];
+  variants: ProductVariant[];
   slug: string;
   tags: string[];
   title: string;
@@ -20,6 +27,7 @@ export interface CartProduct {
   quantity: number;
   size?: string;
   color?: string;
+  variantId?: string;
   image: string;
 }
 

@@ -1,5 +1,11 @@
 'use server';
 
+interface NestProductVariant {
+  id: string;
+  color: string;
+  inStock: number;
+}
+
 interface NestProduct {
   id: string;
   title: string;
@@ -9,6 +15,7 @@ interface NestProduct {
   stock: number;
   sizes: string[];
   colors: string[];
+  variants: NestProductVariant[];
   gender: string;
   tags: string[];
   images: string[];
@@ -59,6 +66,7 @@ export const getPaginatedProductsWithImages = async ({
       products: data.map((product) => ({
         ...product,
         inStock: product.stock,
+        variants: product.variants ?? [],
       })),
     };
   } catch (error) {

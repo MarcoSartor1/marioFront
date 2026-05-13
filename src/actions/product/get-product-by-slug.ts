@@ -1,5 +1,12 @@
 'use server';
 
+interface NestProductVariant {
+  id: string;
+  color: string;
+  inStock: number;
+  stock?: number;
+}
+
 interface NestProduct {
   id: string;
   title: string;
@@ -9,6 +16,7 @@ interface NestProduct {
   stock: number;
   sizes: string[];
   colors: string[];
+  variants: NestProductVariant[];
   gender: string;
   tags: string[];
   categoryId?: string;
@@ -26,9 +34,37 @@ export const getProductBySlug = async (slug: string) => {
 
     const product: NestProduct = await resp.json();
 
+    let variants = (product.variants ?? []).map(v => ({
+      ...v,
+      inStock: v.inStock ?? v.stock ?? 0,
+    }));
+
+    // The slug endpoint may not return variants — fall back to the list endpoint
+    if (variants.length === 0) {
+      try {
+        const listResp = await fetch(
+          `${process.env.API_URL}/products?search=${encodeURIComponent(product.slug)}&limit=5`,
+          { cache: 'no-store' },
+        );
+        if (listResp.ok) {
+          const { data } = await listResp.json();
+          const match = (data as NestProduct[]).find(p => p.slug === product.slug);
+          if (match?.variants?.length) {
+            variants = match.variants.map(v => ({
+              ...v,
+              inStock: v.inStock ?? v.stock ?? 0,
+            }));
+          }
+        }
+      } catch {
+        // fallback failed — continue without variant stock
+      }
+    }
+
     return {
       ...product,
       inStock: product.stock,
+      variants,
       images: product.images ?? [],
       ProductImage: (product.images ?? []).map((url, index) => ({
         id: index,

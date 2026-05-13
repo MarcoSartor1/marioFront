@@ -61,6 +61,7 @@ export const useCartStore = create<State>()(
         const isSameVariant = (item: CartProduct) =>
           item.id === product.id &&
           item.size === product.size &&
+          item.variantId === product.variantId &&
           item.color === product.color;
 
         if (!cart.some(isSameVariant)) {
@@ -84,6 +85,7 @@ export const useCartStore = create<State>()(
           cart: cart.map((item) =>
             item.id === product.id &&
             item.size === product.size &&
+            item.variantId === product.variantId &&
             item.color === product.color
               ? { ...item, quantity }
               : item
@@ -98,6 +100,7 @@ export const useCartStore = create<State>()(
             (item) =>
               item.id !== product.id ||
               item.size !== product.size ||
+              item.variantId !== product.variantId ||
               item.color !== product.color
           ),
         });

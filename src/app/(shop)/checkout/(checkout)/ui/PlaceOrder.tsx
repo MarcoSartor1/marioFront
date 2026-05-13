@@ -72,6 +72,7 @@ export const PlaceOrder = () => {
       quantity: product.quantity,
       size: product.size ?? '',
       price: product.price,
+      ...(product.variantId ? { variantId: product.variantId } : {}),
     }));
 
     const resp = await placeOrder(productsToOrder, address, paymentMethod);

@@ -2,33 +2,41 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-
-import { CartProduct, Product } from '@/interfaces';
-import { useCartStore, useNavigationStore } from '@/store';
 import { useState } from 'react';
+import clsx from 'clsx';
+
+import type { CartProduct, Product, ProductVariant } from '@/interfaces';
+import { useCartStore, useNavigationStore } from '@/store';
 
 interface Props {
   product: Product;
 }
 
+export const ProductGridItem = ({ product }: Props) => {
+  const addProductToCart = useCartStore(state => state.addProductTocart);
+  const startLoading = useNavigationStore(state => state.startLoading);
 
-export const ProductGridItem = ( { product }: Props ) => {
+  const [displayImage, setDisplayImage] = useState(product.images[0]);
+  const [posted, setPosted] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
-  const addProductToCart = useCartStore( state => state.addProductTocart );
-  const startLoading = useNavigationStore( state => state.startLoading );
-  const [ displayImage, setDisplayImage ] = useState( product.images[ 0 ] );
-  const [ posted, setPosted ] = useState( false );
-
+  const variants = product.variants ?? [];
   const hasSizes = product.sizes.length > 0;
+  const hasVariants = variants.length > 0;
+
+  const isAvailable = hasVariants
+    ? variants.some(v => v.inStock > 0)
+    : (product.inStock ?? 0) > 0;
 
   const getImageSrc = (img: string | undefined) => {
-    if ( !img ) return '/imgs/placeholder.jpg';
+    if (!img) return '/imgs/placeholder.jpg';
     return img.startsWith('http') ? img : `/products/${img}`;
   };
 
   const addToCart = () => {
-    setPosted( true );
-    if ( hasSizes ) return;
+    setPosted(true);
+    if (hasSizes) return;
+    if (hasVariants && !selectedVariant) return;
 
     const cartProduct: CartProduct = {
       id: product.id,
@@ -37,51 +45,92 @@ export const ProductGridItem = ( { product }: Props ) => {
       price: product.price,
       quantity: 1,
       size: undefined!,
+      color: selectedVariant?.color,
+      variantId: selectedVariant?.id,
       image: product.images[0],
     };
 
-    addProductToCart( cartProduct );
-    setPosted( false );
+    addProductToCart(cartProduct);
+    setPosted(false);
+    setSelectedVariant(null);
   };
 
   return (
     <div className="rounded-md overflow-hidden fade-in border border-gray-200 shadow-sm flex flex-col h-full">
-      <Link href={ `/product/${ product.slug }` } onClick={ startLoading } className="relative w-full aspect-square overflow-hidden flex-shrink-0" style={{ maxHeight: '240px' }}>
+      <Link
+        href={`/product/${product.slug}`}
+        onClick={startLoading}
+        className="relative w-full aspect-square overflow-hidden flex-shrink-0"
+        style={{ maxHeight: '240px' }}
+      >
         <Image
-          src={ getImageSrc(displayImage) }
-          alt={ product.title }
+          src={getImageSrc(displayImage)}
+          alt={product.title}
           fill
           className="object-contain transition-opacity duration-300"
-          onMouseEnter={ () => product.images[1] && setDisplayImage( product.images[1] ) }
-          onMouseLeave={ () => setDisplayImage( product.images[0] ) }
+          onMouseEnter={() => product.images[1] && setDisplayImage(product.images[1])}
+          onMouseLeave={() => setDisplayImage(product.images[0])}
         />
       </Link>
 
       <div className="p-4 flex flex-col flex-1 gap-2">
         <Link
           className="hover:text-blue-600 text-sm font-medium line-clamp-2 uppercase"
-          onClick={ startLoading }
-          href={ `/product/${ product.slug }` }>
-          { product.title }
+          onClick={startLoading}
+          href={`/product/${product.slug}`}
+        >
+          {product.title}
         </Link>
-        <span className="font-bold text-lg">${ product.price }</span>
-        <p className="text-xs text-gray-500">Stock: { product.inStock ?? 0 }</p>
 
-        { posted && hasSizes && (
-          <span className="text-xs text-red-500 fade-in">
-            Seleccioná una talla en el producto
-          </span>
-        ) }
+        <span className="font-bold text-lg">${product.price}</span>
+
+        {/* Selector de color inline */}
+        {hasVariants && (
+          <div className="flex flex-wrap gap-1.5">
+            {variants.map(v => (
+              <button
+                key={v.id}
+                title={v.inStock === 0 ? `${v.color} — sin stock` : v.color}
+                disabled={v.inStock === 0}
+                onClick={() => setSelectedVariant(prev => prev?.id === v.id ? null : v)}
+                className={clsx(
+                  'px-2 py-0.5 rounded text-xs border transition-all',
+                  v.inStock === 0
+                    ? 'border-gray-200 text-gray-300 line-through cursor-not-allowed'
+                    : selectedVariant?.id === v.id
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                      : 'border-gray-300 text-gray-600 hover:border-gray-500'
+                )}
+              >
+                {v.color}
+                {v.inStock > 0 && (
+                  <span className={clsx(
+                    'ml-1',
+                    selectedVariant?.id === v.id ? 'text-blue-500' : 'text-gray-400'
+                  )}>
+                    ({v.inStock})
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {posted && hasSizes && (
+          <span className="text-xs text-red-500 fade-in">Seleccioná una talla en el producto</span>
+        )}
+        {posted && hasVariants && !selectedVariant && (
+          <span className="text-xs text-red-500 fade-in">Seleccioná un color</span>
+        )}
 
         <button
-          onClick={ addToCart }
-          disabled={ !product.inStock }
+          onClick={addToCart}
+          disabled={!isAvailable}
           className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-500"
         >
-          { product.inStock ? 'Agregar al carrito' : 'Sin stock' }
+          {isAvailable ? 'Agregar al carrito' : 'Sin stock'}
         </button>
       </div>
-
     </div>
   );
 };
