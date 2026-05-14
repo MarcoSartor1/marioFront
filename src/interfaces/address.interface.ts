@@ -5,5 +5,6 @@ export interface Address {
   address2?: string;
   postalCode: string;
   city: string;
+  province?: string;
   phone: string;
 }

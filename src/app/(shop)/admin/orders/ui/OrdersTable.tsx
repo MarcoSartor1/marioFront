@@ -68,6 +68,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
 
   const [updateOrder, setUpdateOrder] = useState<AdminOrder | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('pending');
+  const [trackingCode, setTrackingCode] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -87,12 +88,14 @@ export function OrdersTable({ orders: initialOrders }: Props) {
   function openUpdateModal(order: AdminOrder) {
     setUpdateOrder(order);
     setSelectedStatus(order.status);
+    setTrackingCode('');
     setErrorMsg(null);
     setOpenMenuId(null);
   }
 
   function handleUpdateContinue() {
     if (!updateOrder || selectedStatus === updateOrder.status) return;
+    if (selectedStatus === 'shipped' && !trackingCode.trim()) return;
     setConfirmOpen(true);
   }
 
@@ -101,7 +104,8 @@ export function OrdersTable({ orders: initialOrders }: Props) {
     setUpdating(true);
     setErrorMsg(null);
 
-    const { ok, message } = await updateOrderStatus(updateOrder.id, selectedStatus);
+    const code = selectedStatus === 'shipped' ? trackingCode.trim() : undefined;
+    const { ok, message } = await updateOrderStatus(updateOrder.id, selectedStatus, code);
 
     if (!ok) {
       setErrorMsg(message ?? 'Error desconocido');
@@ -408,13 +412,31 @@ export function OrdersTable({ orders: initialOrders }: Props) {
               </label>
               <select
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
+                onChange={(e) => { setSelectedStatus(e.target.value as OrderStatus); setTrackingCode(''); }}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 {ALL_UPDATE_STATUSES.map((s) => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                 ))}
               </select>
+
+              {selectedStatus === 'shipped' && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Código de seguimiento <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                    placeholder="Ej: RE123456789AR"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    El cliente recibirá un email con este código.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="px-6 py-4 border-t flex justify-end gap-2">
@@ -426,7 +448,10 @@ export function OrdersTable({ orders: initialOrders }: Props) {
               </button>
               <button
                 onClick={handleUpdateContinue}
-                disabled={selectedStatus === updateOrder.status}
+                disabled={
+                  selectedStatus === updateOrder.status ||
+                  (selectedStatus === 'shipped' && !trackingCode.trim())
+                }
                 className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Continuar

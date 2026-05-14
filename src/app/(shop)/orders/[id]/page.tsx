@@ -67,6 +67,19 @@ export default async function OrdersByIdPage({ params }: Props) {
 
           {/* Resumen y pago */}
           <div className="bg-white rounded-xl shadow-xl p-7">
+            {o.trackingCode && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-semibold text-blue-800 mb-1">Tu pedido está en camino</p>
+                <p className="text-sm text-blue-700">
+                  Código de seguimiento:{' '}
+                  <span className="font-mono font-bold">{o.trackingCode}</span>
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Podés rastrearlo en el sitio de Correo Argentino.
+                </p>
+              </div>
+            )}
+
             <h2 className="text-2xl mb-2">Dirección de entrega</h2>
             <div className="mb-10">
               <p className="text-xl">

@@ -4,7 +4,7 @@ import { auth } from '@/auth.config';
 import { OrderStatus } from '@/interfaces';
 import { apiPatch } from '@/lib/api';
 
-export const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+export const updateOrderStatus = async (orderId: string, status: OrderStatus, trackingCode?: string) => {
   const session = await auth();
 
   if (session?.user.role !== 'admin') {
@@ -12,7 +12,9 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus) =>
   }
 
   try {
-    await apiPatch(`/orders/${orderId}/status`, { status });
+    const body: Record<string, unknown> = { status };
+    if (trackingCode) body.trackingCode = trackingCode;
+    await apiPatch(`/orders/${orderId}/status`, body);
     return { ok: true };
   } catch (error) {
     console.log(error);

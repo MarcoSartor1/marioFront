@@ -1,5 +1,6 @@
 export type OrderStatus = 'pending' | 'processing' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'mercadopago' | 'transfer';
+export type ShippingType = 'sucursal' | 'domicilio';
 
 export interface OrderProduct {
   title: string;
@@ -26,6 +27,9 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paymentReceipt: string | null;
+  shippingType: ShippingType | null;
+  shippingCost: number;
+  trackingCode: string | null;
   subTotal: number;
   tax: number;
   total: number;

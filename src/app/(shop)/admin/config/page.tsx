@@ -4,6 +4,7 @@ import { getStoreConfig } from '@/actions';
 import { Title } from '@/components';
 import { PublishToggle } from './ui/PublishToggle';
 import { LogoUploader } from './ui/LogoUploader';
+import { ShippingConfigForm } from './ui/ShippingConfigForm';
 
 export default async function AdminConfigPage() {
   const { config } = await getStoreConfig();
@@ -56,6 +57,19 @@ export default async function AdminConfigPage() {
           </div>
 
           <PublishToggle isPublished={isPublished} />
+        </div>
+
+        {/* Costos de envío */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Costos de envío</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Definí los costos de envío y las ciudades donde el envío es gratis.
+          </p>
+          <ShippingConfigForm
+            shippingCostSucursal={config.shippingCostSucursal ?? 8000}
+            shippingCostDomicilio={config.shippingCostDomicilio ?? 10000}
+            freeShippingCities={config.freeShippingCities ?? ''}
+          />
         </div>
 
       </div>

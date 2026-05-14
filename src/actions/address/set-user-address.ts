@@ -10,6 +10,7 @@ export const setUserAddress = async (address: Address, _userId: string) => {
       address2: address.address2,
       countryId: 'AR',
       city: address.city,
+      province: address.province,
       firstName: address.firstName,
       lastName: address.lastName,
       phone: address.phone,

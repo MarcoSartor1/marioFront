@@ -18,7 +18,10 @@ export async function authenticate(
     return 'Success';
 
   } catch (error) {
-    if ((error as any)?.message === 'RateLimitExceeded') return 'RateLimit';
+    if (
+      (error as any)?.message === 'RateLimitExceeded' ||
+      (error as any)?.cause?.message === 'RateLimitExceeded'
+    ) return 'RateLimit';
     if (error instanceof AuthError || (error as any)?.type === 'CredentialsSignin' || (error as any)?.message === 'CredentialsSignin') {
       return 'CredentialsSignin';
     }

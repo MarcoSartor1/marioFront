@@ -18,6 +18,7 @@ type FormInputs = {
   address2?: string;
   postalCode: string;
   city: string;
+  province?: string;
   phone: string;
   rememberAddress: boolean;
 }
@@ -101,6 +102,11 @@ export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
       <div className="flex flex-col mb-2">
         <span>Ciudad</span>
         <input type="text" className="p-2 border rounded-md bg-gray-200" { ...register('city', { required: true  }) } />
+      </div>
+
+      <div className="flex flex-col mb-2">
+        <span>Provincia</span>
+        <input type="text" className="p-2 border rounded-md bg-gray-200" { ...register('province') } placeholder="Ej: Santa Fe" />
       </div>
 
       <div className="flex flex-col mb-2">

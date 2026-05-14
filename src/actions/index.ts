@@ -19,6 +19,7 @@ export * from './config/get-store-config';
 export * from './config/update-published-status';
 export * from './config/update-contact-config';
 export * from './config/update-logo-config';
+export * from './config/update-shipping-config';
 
 export * from './country/get-countries';
 
