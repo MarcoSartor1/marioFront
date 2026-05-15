@@ -56,7 +56,7 @@ export const ProductGridItem = ({ product }: Props) => {
   };
 
   return (
-    <div className="rounded-md overflow-hidden fade-in border border-gray-200 shadow-sm flex flex-col h-full">
+    <div className="rounded-xl overflow-hidden fade-in bg-white border border-amber-100/80 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full group">
       <Link
         href={`/product/${product.slug}`}
         onClick={startLoading}
@@ -75,14 +75,17 @@ export const ProductGridItem = ({ product }: Props) => {
 
       <div className="p-4 flex flex-col flex-1 gap-2">
         <Link
-          className="hover:text-blue-600 text-sm font-medium line-clamp-2 uppercase"
+          className="hover:text-primary text-sm font-medium line-clamp-2"
           onClick={startLoading}
           href={`/product/${product.slug}`}
         >
           {product.title}
         </Link>
 
-        <span className="font-bold text-lg">${product.price}</span>
+        {product.price === 0
+          ? <span className="text-sm text-gray-400 italic">Consultar precio</span>
+          : <span className="font-bold text-lg">${product.price.toLocaleString('es-AR')}</span>
+        }
 
         {/* Selector de color inline */}
         {hasVariants && (
@@ -98,15 +101,15 @@ export const ProductGridItem = ({ product }: Props) => {
                   v.inStock === 0
                     ? 'border-gray-200 text-gray-300 line-through cursor-not-allowed'
                     : selectedVariant?.id === v.id
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
-                      : 'border-gray-300 text-gray-600 hover:border-gray-500'
+                      ? 'border-primary bg-amber-50 text-primary font-semibold'
+                      : 'border-gray-300 text-gray-600 hover:border-primary'
                 )}
               >
                 {v.color}
                 {v.inStock > 0 && (
                   <span className={clsx(
                     'ml-1',
-                    selectedVariant?.id === v.id ? 'text-blue-500' : 'text-gray-400'
+                    selectedVariant?.id === v.id ? 'text-primary' : 'text-gray-400'
                   )}>
                     ({v.inStock})
                   </span>
@@ -126,7 +129,7 @@ export const ProductGridItem = ({ product }: Props) => {
         <button
           onClick={addToCart}
           disabled={!isAvailable}
-          className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-500"
+          className="mt-auto w-full bg-primary hover:opacity-90 text-white text-sm font-semibold py-2 rounded-lg transition-all disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
         >
           {isAvailable ? 'Agregar al carrito' : 'Sin stock'}
         </button>

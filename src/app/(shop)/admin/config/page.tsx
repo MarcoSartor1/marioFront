@@ -6,6 +6,7 @@ import { PublishToggle } from './ui/PublishToggle';
 import { LogoUploader } from './ui/LogoUploader';
 import { ShippingConfigForm } from './ui/ShippingConfigForm';
 import { XubioConfigForm } from './ui/XubioConfigForm';
+import { ThemeConfigForm } from './ui/ThemeConfigForm';
 
 export default async function AdminConfigPage() {
   const [{ config }, { ajustesStock, listasPrecio }] = await Promise.all([
@@ -61,6 +62,18 @@ export default async function AdminConfigPage() {
           </div>
 
           <PublishToggle isPublished={isPublished} />
+        </div>
+
+        {/* Colores del sitio */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Colores del sitio</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Personalizá los colores principales. Los cambios se aplican en toda la tienda.
+          </p>
+          <ThemeConfigForm
+            currentPrimary={config.primaryColor ?? '#C4622D'}
+            currentSecondary={config.secondaryColor ?? '#8B4513'}
+          />
         </div>
 
         {/* Costos de envío */}

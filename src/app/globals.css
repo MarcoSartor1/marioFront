@@ -3,16 +3,15 @@
 @tailwind utilities;
 
 :root {
-  /* Colores dinámicos para White Label */
-  --primary: #274494; /* Tu color actual por defecto */
+  /* Costumbres Argentina — paleta terrosa/artesanal */
+  --primary: #C4622D;
   --primary-foreground: #ffffff;
-  --secondary: #0b54e5;
+  --secondary: #8B4513;
   --secondary-foreground: #ffffff;
 
-  /* Variables de Next.js originales (ajustadas para convivir) */
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 30, 20, 10;
+  --background-start-rgb: 253, 250, 245;
+  --background-end-rgb: 253, 250, 245;
 }
 
 /* Soporte para Dark Mode manual (clase .dark) */
@@ -116,9 +115,9 @@ body {
   background: linear-gradient(
     105deg,
     transparent 20%,
-    rgba(39, 68, 148, 0.08) 40%,
-    rgba(11, 84, 229, 0.12) 50%,
-    rgba(39, 68, 148, 0.08) 60%,
+    rgba(196, 98, 45, 0.08) 40%,
+    rgba(196, 98, 45, 0.14) 50%,
+    rgba(196, 98, 45, 0.08) 60%,
     transparent 80%
   );
   background-size: 200% 100%;

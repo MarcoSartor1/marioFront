@@ -45,7 +45,7 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
   }, []);
 
   return (
-    <nav className="sticky top-0 z-30 flex px-5 justify-between items-center w-full h-16 bg-white shadow-sm">
+    <nav className="sticky top-0 z-30 flex px-5 justify-between items-center w-full h-16 bg-[#FDFAF5] border-b border-amber-100 shadow-sm">
       {/* Logo */}
       <div>
         <Link href="/" className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
           </Link>
 
           {showDropdown && categories.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded-md py-1 z-50 min-w-[160px]">
+            <div className="absolute top-full left-0 mt-1 bg-[#FDFAF5] border border-amber-100 shadow-lg rounded-md py-1 z-50 min-w-[160px]">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
@@ -129,7 +129,7 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
         } className="mx-2">
           <div className="relative">
             {(loaded && totalItemsInCart > 0) && (
-              <span className="fade-in absolute text-xs px-1 rounded-full font-bold -top-2 -right-2 bg-blue-700 text-white">
+              <span className="fade-in absolute text-xs px-1 rounded-full font-bold -top-2 -right-2 bg-primary text-white">
                 {totalItemsInCart}
               </span>
             )}

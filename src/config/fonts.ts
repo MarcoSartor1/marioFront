@@ -1,13 +1,13 @@
-import { Inter, Atkinson_Hyperlegible } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 
 export const inter = Inter({
   subsets: ['latin'],
-  display: 'swap', // Mejora performance
+  display: 'swap',
 });
 
-export const titleFont = Atkinson_Hyperlegible({
+export const titleFont = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  display: 'swap', // Mejora performance
-  fallback: ['system-ui', 'arial', 'sans-serif'], // Fallback explícito
+  weight: ['400', '600', '700'],
+  display: 'swap',
+  fallback: ['Georgia', 'serif'],
 });

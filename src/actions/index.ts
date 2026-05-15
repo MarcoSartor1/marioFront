@@ -22,6 +22,7 @@ export * from './config/update-contact-config';
 export * from './config/update-logo-config';
 export * from './config/update-shipping-config';
 export * from './config/update-xubio-config';
+export * from './config/update-theme-config';
 
 export * from './country/get-countries';
 

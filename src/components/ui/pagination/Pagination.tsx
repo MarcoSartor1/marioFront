@@ -77,7 +77,7 @@ export const Pagination = ({ totalPages }: Props) => {
                     clsx(
                       "page-link relative block py-1.5 px-3 border-0 outline-none transition-all duration-300 rounded text-gray-800 hover:text-gray-800 hover:bg-gray-200 focus:shadow-none",
                       {
-                        'bg-blue-600 shadow-sm text-white hover:text-white hover:bg-blue-700': page === currentPage
+                        'bg-primary shadow-sm text-primary-foreground hover:text-primary-foreground hover:opacity-90': page === currentPage
                       }
                     )
                   }
