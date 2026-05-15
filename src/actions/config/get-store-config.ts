@@ -26,6 +26,8 @@ const defaultConfig = {
   whatsapp: null,
   isContactPagePublished: false,
   isPublished: true,
+  xubioStockAdjustmentDoc: null,
+  xubioListaPrecioId: null,
   updatedAt: new Date(),
 };
 

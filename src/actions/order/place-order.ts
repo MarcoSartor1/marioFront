@@ -7,7 +7,7 @@ import { apiFetch } from '@/lib/api';
 interface ProductToOrder {
   productId: string;
   quantity: number;
-  size: string;
+  size?: string;
   price: number;
   variantId?: string;
 }

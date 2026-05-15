@@ -31,11 +31,7 @@ export const setUserAddress = async (address: Address, _userId: string) => {
     const newAddress = await resp.json();
 
     return { ok: true, address: newAddress };
-  } catch (error) {
-    console.log(error);
-    return {
-      ok: false,
-      message: 'No se pudo grabar la dirección',
-    };
+  } catch {
+    return { ok: false, message: 'No se pudo grabar la dirección' };
   }
 };

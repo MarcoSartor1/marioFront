@@ -13,8 +13,7 @@ export const getUserAddress = async (_userId: string) => {
       ...rest,
       address2: address2 ? address2 : '',
     };
-  } catch (error) {
-    console.log(error);
+  } catch {
     return null;
   }
 };

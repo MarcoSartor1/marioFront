@@ -1,13 +1,17 @@
 export const revalidate = 0;
 
-import { getStoreConfig } from '@/actions';
+import { getStoreConfig, getXubioConfigData } from '@/actions';
 import { Title } from '@/components';
 import { PublishToggle } from './ui/PublishToggle';
 import { LogoUploader } from './ui/LogoUploader';
 import { ShippingConfigForm } from './ui/ShippingConfigForm';
+import { XubioConfigForm } from './ui/XubioConfigForm';
 
 export default async function AdminConfigPage() {
-  const { config } = await getStoreConfig();
+  const [{ config }, { ajustesStock, listasPrecio }] = await Promise.all([
+    getStoreConfig(),
+    getXubioConfigData(),
+  ]);
   const isPublished = config.isPublished !== false;
 
   return (
@@ -69,6 +73,20 @@ export default async function AdminConfigPage() {
             shippingCostSucursal={config.shippingCostSucursal ?? 8000}
             shippingCostDomicilio={config.shippingCostDomicilio ?? 10000}
             freeShippingCities={config.freeShippingCities ?? ''}
+          />
+        </div>
+
+        {/* Integración Xubio */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Integración Xubio</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Configurá el ajuste de stock de referencia y la lista de precios usada para la sincronización con Xubio.
+          </p>
+          <XubioConfigForm
+            ajustesStock={ajustesStock}
+            listasPrecio={listasPrecio}
+            initialStockAdjustmentDoc={config.xubioStockAdjustmentDoc ?? null}
+            initialListaPrecioId={config.xubioListaPrecioId ?? null}
           />
         </div>
 

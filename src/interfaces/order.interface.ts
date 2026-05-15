@@ -16,8 +16,18 @@ export interface AdminOrder {
   status: OrderStatus;
   paymentMethod: PaymentMethod | null;
   paymentReceipt: string | null;
+  shippingType: ShippingType | null;
   createdAt: string;
   products: OrderProduct[];
+  address: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    address2?: string;
+    postalCode: string;
+    city: string;
+    phone: string;
+  } | null;
 }
 
 export interface Order {

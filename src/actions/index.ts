@@ -16,10 +16,12 @@ export * from './category/create-update-category';
 export * from './category/delete-category';
 
 export * from './config/get-store-config';
+export * from './config/get-xubio-config-data';
 export * from './config/update-published-status';
 export * from './config/update-contact-config';
 export * from './config/update-logo-config';
 export * from './config/update-shipping-config';
+export * from './config/update-xubio-config';
 
 export * from './country/get-countries';
 

@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import clsx from 'clsx';
 
-import type { Address, Country } from '@/interfaces';
+import type { Address } from '@/interfaces';
 import { useAddressStore } from '@/store';
 import { deleteUserAddress, setUserAddress } from '@/actions';
 
@@ -25,15 +25,14 @@ type FormInputs = {
 
 
 interface Props {
-  countries: Country[];
   userStoredAddress?: Partial<Address>;
 }
 
 
-export const AddressForm = ({ countries, userStoredAddress = {} }: Props) => {
+export const AddressForm = ({ userStoredAddress = {} }: Props) => {
 
   const router = useRouter();
-  const argentina = countries.find(c => c.name === 'Argentina') ?? { id: 'AR', name: 'Argentina' };
+  const argentina = { id: 'AR', name: 'Argentina' };
 
   const { handleSubmit, register, formState: { isValid }, reset } = useForm<FormInputs>({
     defaultValues: {

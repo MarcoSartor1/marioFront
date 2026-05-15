@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AdminOrder, OrderStatus } from '@/interfaces';
-import { updateOrderStatus } from '@/actions';
+import { AdminOrder, Order, OrderStatus } from '@/interfaces';
+import { getOrderById, updateOrderStatus } from '@/actions';
 import { IoCardOutline, IoEllipsisVertical, IoClose, IoAlertCircleOutline, IoReceiptOutline } from 'react-icons/io5';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -64,6 +64,8 @@ export function OrdersTable({ orders: initialOrders }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [viewOrder, setViewOrder] = useState<AdminOrder | null>(null);
+  const [viewOrderDetail, setViewOrderDetail] = useState<Order | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
 
   const [updateOrder, setUpdateOrder] = useState<AdminOrder | null>(null);
@@ -84,6 +86,16 @@ export function OrdersTable({ orders: initialOrders }: Props) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  async function openViewModal(order: AdminOrder) {
+    setViewOrder(order);
+    setViewOrderDetail(null);
+    setOpenMenuId(null);
+    setLoadingDetail(true);
+    const result = await getOrderById(order.id);
+    if (result.ok && result.order) setViewOrderDetail(result.order as Order);
+    setLoadingDetail(false);
+  }
 
   function openUpdateModal(order: AdminOrder) {
     setUpdateOrder(order);
@@ -220,7 +232,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                   {openMenuId === order.id && (
                     <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded shadow-lg z-10 flex flex-col">
                       <button
-                        onClick={() => { setViewOrder(order); setOpenMenuId(null); }}
+                        onClick={() => openViewModal(order)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Ver orden
@@ -301,7 +313,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
       {viewOrder && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setViewOrder(null)}
+          onClick={() => { setViewOrder(null); setViewOrderDetail(null); }}
         >
           <div
             className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4"
@@ -317,7 +329,7 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                 </p>
               </div>
               <button
-                onClick={() => setViewOrder(null)}
+                onClick={() => { setViewOrder(null); setViewOrderDetail(null); }}
                 className="p-1 rounded hover:bg-gray-100 transition-colors"
               >
                 <IoClose size={20} />
@@ -346,6 +358,27 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                 </tbody>
               </table>
             </div>
+
+            {loadingDetail && (
+              <div className="px-6 py-3 border-t text-sm text-gray-400">Cargando dirección...</div>
+            )}
+            {!loadingDetail && viewOrderDetail?.address && (
+              <div className="px-6 py-4 border-t text-sm text-gray-700">
+                <p className="font-medium text-gray-900 mb-1">Dirección de envío</p>
+                <p>{viewOrderDetail.address.firstName} {viewOrderDetail.address.lastName}</p>
+                <p>{viewOrderDetail.address.address}{viewOrderDetail.address.address2 ? `, ${viewOrderDetail.address.address2}` : ''}</p>
+                <p>{viewOrderDetail.address.city}</p>
+                {viewOrderDetail.address.postalCode && (
+                  <p>CP: {viewOrderDetail.address.postalCode}</p>
+                )}
+                <p>Tel: {viewOrderDetail.address.phone}</p>
+                {viewOrderDetail.shippingType && (
+                  <p className="mt-1 text-gray-500">
+                    Envío: {viewOrderDetail.shippingType === 'domicilio' ? 'A domicilio' : 'Sucursal'}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="px-6 py-4 border-t flex justify-between items-center">
               <div className="flex items-center gap-3">

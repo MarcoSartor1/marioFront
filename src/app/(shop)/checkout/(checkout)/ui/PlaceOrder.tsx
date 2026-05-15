@@ -97,7 +97,7 @@ export const PlaceOrder = ({ shippingCostSucursal, shippingCostDomicilio, freeSh
     const productsToOrder = cart.map(product => ({
       productId: product.id,
       quantity: product.quantity,
-      size: product.size ?? '',
+      ...(product.size ? { size: product.size } : {}),
       price: product.price,
       ...(product.variantId ? { variantId: product.variantId } : {}),
     }));
@@ -120,7 +120,7 @@ export const PlaceOrder = ({ shippingCostSucursal, shippingCostDomicilio, freeSh
   const hasStockBlocker = stockErrors.length > 0;
   const buttonLabel = priceWarning.length > 0
     ? 'Confirmar con nuevos precios'
-    : 'Colocar orden';
+    : 'Realizar orden';
 
   return (
     <div className="bg-white rounded-xl shadow-xl p-7">
@@ -245,7 +245,7 @@ export const PlaceOrder = ({ shippingCostSucursal, shippingCostDomicilio, freeSh
 
       <p className="mb-5">
         <span className="text-xs">
-          Al hacer clic en &quot;Colocar orden&quot;, aceptas nuestros{" "}
+          Al hacer clic en &quot;Realizar orden&quot;, aceptas nuestros{" "}
           <a href="#" className="underline">términos y condiciones</a>{" "}
           y{" "}
           <a href="#" className="underline">política de privacidad</a>
