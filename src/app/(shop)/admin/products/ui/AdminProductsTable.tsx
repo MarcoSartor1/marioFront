@@ -22,6 +22,7 @@ export function AdminProductsTable({ products, isAdmin }: Props) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<'publish' | 'unpublish' | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -43,10 +44,23 @@ export function AdminProductsTable({ products, isAdmin }: Props) {
   };
 
   const handlePublish = (publish: boolean) => {
+    const count = selectedIds.size;
+    setPendingAction(publish ? 'publish' : 'unpublish');
     startTransition(async () => {
-      await toggleProductPublish(Array.from(selectedIds), publish);
+      const result = await toggleProductPublish(Array.from(selectedIds), publish);
       setSelectedIds(new Set());
-      router.refresh();
+      setPendingAction(null);
+      if (result.ok) {
+        showToast({
+          type: 'success',
+          message: publish
+            ? `${count} ${count === 1 ? 'producto publicado' : 'productos publicados'} correctamente`
+            : `${count} ${count === 1 ? 'producto despublicado' : 'productos despublicados'} correctamente`,
+        });
+        router.refresh();
+      } else {
+        showToast({ type: 'error', message: result.message ?? 'No se pudo actualizar el estado' });
+      }
     });
   };
 
@@ -85,16 +99,28 @@ export function AdminProductsTable({ products, isAdmin }: Props) {
         <button
           onClick={() => handlePublish(false)}
           disabled={!hasSelection || isPending}
-          className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Despublicar seleccionados
+          {isPending && pendingAction === 'unpublish' && (
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+          )}
+          {isPending && pendingAction === 'unpublish' ? 'Despublicando...' : 'Despublicar seleccionados'}
         </button>
         <button
           onClick={() => handlePublish(true)}
           disabled={!hasSelection || isPending}
-          className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Publicar seleccionados
+          {isPending && pendingAction === 'publish' && (
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+          )}
+          {isPending && pendingAction === 'publish' ? 'Publicando...' : 'Publicar seleccionados'}
         </button>
         {isAdmin && (
           <button

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Category, Product, ProductImage as ProductWithImage } from "@/interfaces";
 import clsx from "clsx";
-import { createUpdateProduct, deleteProductImage } from "@/actions";
+import { createUpdateProduct, deleteProductImage, createUpdateCategory } from "@/actions";
 import { useRouter } from "next/navigation";
 import { ProductImage } from "@/components";
 
@@ -91,6 +91,10 @@ export const ProductForm = ({ product, categories }: Props) => {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [existingRotations, setExistingRotations] = useState<Record<string, number>>({});
   const [pendingRotations, setPendingRotations] = useState<Record<number, number>>({});
+  const [categoryList, setCategoryList] = useState<Category[]>(categories);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [categoryMsg, setCategoryMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -195,6 +199,28 @@ export const ProductForm = ({ product, categories }: Props) => {
     }
   };
 
+  const showCategoryMsg = (type: 'success' | 'error', text: string) => {
+    setCategoryMsg({ type, text });
+    setTimeout(() => setCategoryMsg(null), 4000);
+  };
+
+  const onAddCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setIsAddingCategory(true);
+    const result = await createUpdateCategory(null, name);
+    setIsAddingCategory(false);
+    if (!result.ok) {
+      showCategoryMsg('error', result.message ?? 'No se pudo crear la categoría');
+      return;
+    }
+    const created: Category = result.category;
+    setCategoryList((prev) => [...prev, created]);
+    setValue('categoryId', created.id);
+    setNewCategoryName('');
+    showCategoryMsg('success', `Categoría "${created.name}" creada y seleccionada`);
+  };
+
   const onSubmit = async (data: FormInputs) => {
     setIsLoading(true);
     setErrorMessage(null);
@@ -292,11 +318,11 @@ export const ProductForm = ({ product, categories }: Props) => {
 
         {/* Descripción */}
         <div className="flex flex-col mb-2">
-          <span>Descripción *</span>
+          <span>Descripción <span className="text-gray-400 text-sm">(opcional)</span></span>
           <textarea
             rows={5}
             className="p-2 border rounded-md bg-gray-200"
-            {...register("description", { required: true })}
+            {...register("description")}
           />
         </div>
 
@@ -344,28 +370,40 @@ export const ProductForm = ({ product, categories }: Props) => {
             {...register("categoryId")}
           >
             <option value="">— Sin categoría —</option>
-            {categories.map((category) => (
+            {categoryList.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </select>
+          <div className="flex gap-2 mt-1">
+            <input
+              type="text"
+              placeholder="Nueva categoría..."
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onAddCategory())}
+              className="p-2 border rounded-md bg-gray-200 flex-1 text-sm"
+            />
+            <button
+              type="button"
+              onClick={onAddCategory}
+              disabled={!newCategoryName.trim() || isAddingCategory}
+              className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm font-bold disabled:opacity-40"
+            >
+              {isAddingCategory ? '...' : '+'}
+            </button>
+          </div>
+          {categoryMsg && (
+            <p className={clsx('text-xs mt-1', {
+              'text-green-600': categoryMsg.type === 'success',
+              'text-red-500': categoryMsg.type === 'error',
+            })}>
+              {categoryMsg.text}
+            </p>
+          )}
         </div>
 
-        {errorMessage && (
-          <p className="text-red-500 text-sm mb-2">{errorMessage}</p>
-        )}
-
-        {successMessage && (
-          <p className="text-green-600 text-sm mb-2">{successMessage}</p>
-        )}
-
-        <button
-          disabled={isLoading}
-          className={clsx("btn-primary w-full", { "opacity-70 cursor-not-allowed": isLoading })}
-        >
-          {isLoading ? "Guardando..." : "Guardar"}
-        </button>
       </div>
 
       {/* Columna derecha */}
@@ -432,7 +470,7 @@ export const ProductForm = ({ product, categories }: Props) => {
 
           {showColors && (
             <div>
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row gap-2 mb-2">
                 <input
                   type="text"
                   placeholder="Nombre del color"
@@ -441,21 +479,23 @@ export const ProductForm = ({ product, categories }: Props) => {
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onAddColor())}
                   className="p-2 border rounded-md bg-gray-200 flex-1 text-sm"
                 />
-                <input
-                  type="color"
-                  value={colorHex}
-                  onChange={(e) => setColorHex(e.target.value)}
-                  className="w-10 h-10 rounded cursor-pointer border border-gray-300"
-                  title="Seleccionar color"
-                />
-                <button
-                  type="button"
-                  onClick={onAddColor}
-                  disabled={!colorName.trim()}
-                  className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm disabled:opacity-40"
-                >
-                  Agregar
-                </button>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={colorHex}
+                    onChange={(e) => setColorHex(e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-gray-300 flex-shrink-0"
+                    title="Seleccionar color"
+                  />
+                  <button
+                    type="button"
+                    onClick={onAddColor}
+                    disabled={!colorName.trim()}
+                    className="flex-1 sm:flex-none px-3 py-1 bg-blue-500 text-white rounded-md text-sm disabled:opacity-40"
+                  >
+                    Agregar
+                  </button>
+                </div>
               </div>
 
               {getValues("colors").length > 0 && (
@@ -600,6 +640,22 @@ export const ProductForm = ({ product, categories }: Props) => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Botón guardar — siempre al final, ocupa ambas columnas en desktop */}
+      <div className="col-span-1 sm:col-span-2">
+        {errorMessage && (
+          <p className="text-red-500 text-sm mb-2">{errorMessage}</p>
+        )}
+        {successMessage && (
+          <p className="text-green-600 text-sm mb-2">{successMessage}</p>
+        )}
+        <button
+          disabled={isLoading}
+          className={clsx("btn-primary w-full", { "opacity-70 cursor-not-allowed": isLoading })}
+        >
+          {isLoading ? "Guardando..." : "Guardar"}
+        </button>
       </div>
     </form>
   );

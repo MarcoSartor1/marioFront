@@ -8,11 +8,10 @@ interface Props {
 
 async function getCategoryById(id: string): Promise<{ id: string; name: string } | null> {
   try {
-    const resp = await fetch(`${process.env.API_URL}/categories/${id}`, {
-      cache: 'no-store',
-    });
+    const resp = await fetch(`${process.env.API_URL}/categories`, { cache: 'no-store' });
     if (!resp.ok) return null;
-    return resp.json();
+    const categories: { id: string; name: string }[] = await resp.json();
+    return categories.find((c) => c.id === id) ?? null;
   } catch {
     return null;
   }

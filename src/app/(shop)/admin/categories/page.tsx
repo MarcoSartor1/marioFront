@@ -3,6 +3,7 @@ export const revalidate = 0;
 import { getCategories } from '@/actions';
 import { Title } from '@/components';
 import Link from 'next/link';
+import { DeleteCategoryButton } from './ui/DeleteCategoryButton';
 
 export default async function CategoriesPage() {
   const categories = await getCategories();
@@ -51,6 +52,7 @@ export default async function CategoriesPage() {
                   >
                     Editar
                   </Link>
+                  <DeleteCategoryButton id={category.id} name={category.name} />
                 </td>
               </tr>
             ))}
