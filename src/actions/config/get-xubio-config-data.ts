@@ -15,18 +15,26 @@ export interface XubioListaPrecio {
   esDefault: boolean;
 }
 
+export interface XubioDeposito {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
 export const getXubioConfigData = async (): Promise<{
   ajustesStock: XubioAjusteStock[];
   listasPrecio: XubioListaPrecio[];
+  depositos: XubioDeposito[];
 }> => {
   const session = await auth();
   if (session?.user.role !== 'admin') {
-    return { ajustesStock: [], listasPrecio: [] };
+    return { ajustesStock: [], listasPrecio: [], depositos: [] };
   }
 
-  const [ajustesResp, listasResp] = await Promise.allSettled([
+  const [ajustesResp, listasResp, depositosResp] = await Promise.allSettled([
     apiFetch('/xubio/ajustes-stock'),
     apiFetch('/xubio/listas-precio'),
+    apiFetch('/xubio/depositos'),
   ]);
 
   const ajustesStock: XubioAjusteStock[] =
@@ -39,5 +47,10 @@ export const getXubioConfigData = async (): Promise<{
       ? await listasResp.value.json().catch(() => [])
       : [];
 
-  return { ajustesStock, listasPrecio };
+  const depositos: XubioDeposito[] =
+    depositosResp.status === 'fulfilled' && depositosResp.value.ok
+      ? await depositosResp.value.json().catch(() => [])
+      : [];
+
+  return { ajustesStock, listasPrecio, depositos };
 };

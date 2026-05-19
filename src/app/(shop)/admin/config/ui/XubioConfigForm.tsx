@@ -2,24 +2,31 @@
 
 import { useState } from 'react';
 import { updateXubioConfig } from '@/actions';
-import type { XubioAjusteStock, XubioListaPrecio } from '@/actions';
+import type { XubioAjusteStock, XubioDeposito, XubioListaPrecio } from '@/actions';
 
 interface Props {
   ajustesStock: XubioAjusteStock[];
   listasPrecio: XubioListaPrecio[];
+  depositos: XubioDeposito[];
   initialStockAdjustmentDoc: string | null;
   initialListaPrecioId: number | null;
+  initialDepositoId: number | null;
 }
 
 export const XubioConfigForm = ({
   ajustesStock,
   listasPrecio,
+  depositos,
   initialStockAdjustmentDoc,
   initialListaPrecioId,
+  initialDepositoId,
 }: Props) => {
   const [stockDoc, setStockDoc] = useState(initialStockAdjustmentDoc ?? '');
   const [listaPrecioId, setListaPrecioId] = useState(
     initialListaPrecioId != null ? String(initialListaPrecioId) : '',
+  );
+  const [depositoId, setDepositoId] = useState(
+    initialDepositoId != null ? String(initialDepositoId) : '',
   );
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -34,6 +41,7 @@ export const XubioConfigForm = ({
     const result = await updateXubioConfig({
       xubioStockAdjustmentDoc: stockDoc || null,
       xubioListaPrecioId: listaPrecioId ? Number(listaPrecioId) : null,
+      xubioDepositoId: depositoId ? Number(depositoId) : null,
     });
 
     setSaving(false);
@@ -87,6 +95,27 @@ export const XubioConfigForm = ({
         </select>
         <p className="text-xs text-gray-500 mt-1">
           Lista de precios de Xubio usada para sincronizar los precios de productos.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-bold text-gray-700 mb-1">
+          Depósito
+        </label>
+        <select
+          value={depositoId}
+          onChange={(e) => setDepositoId(e.target.value)}
+          className="p-2 border rounded-md bg-gray-100 w-full"
+        >
+          <option value="">— Sin seleccionar —</option>
+          {depositos.map((d) => (
+            <option key={d.id} value={String(d.id)}>
+              {d.nombre}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1">
+          Depósito de Xubio usado para la sincronización de stock.
         </p>
       </div>
 

@@ -9,7 +9,7 @@ import { XubioConfigForm } from './ui/XubioConfigForm';
 import { ThemeConfigForm } from './ui/ThemeConfigForm';
 
 export default async function AdminConfigPage() {
-  const [{ config }, { ajustesStock, listasPrecio }] = await Promise.all([
+  const [{ config }, { ajustesStock, listasPrecio, depositos }] = await Promise.all([
     getStoreConfig(),
     getXubioConfigData(),
   ]);
@@ -98,8 +98,10 @@ export default async function AdminConfigPage() {
           <XubioConfigForm
             ajustesStock={ajustesStock}
             listasPrecio={listasPrecio}
+            depositos={depositos}
             initialStockAdjustmentDoc={config.xubioStockAdjustmentDoc ?? null}
             initialListaPrecioId={config.xubioListaPrecioId ?? null}
+            initialDepositoId={config.xubioDepositoId ?? null}
           />
         </div>
 

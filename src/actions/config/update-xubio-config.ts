@@ -7,6 +7,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 export interface XubioConfigInput {
   xubioStockAdjustmentDoc?: string | null;
   xubioListaPrecioId?: number | null;
+  xubioDepositoId?: number | null;
 }
 
 export const updateXubioConfig = async (data: XubioConfigInput) => {
