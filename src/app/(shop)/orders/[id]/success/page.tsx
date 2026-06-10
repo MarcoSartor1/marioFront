@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getOrderById } from '@/actions';
+import { getOrderById, verifyPayment } from '@/actions';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL_MS = 3000;
@@ -11,12 +11,13 @@ const POLL_INTERVAL_MS = 3000;
 export default function OrderSuccessPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [isPaid, setIsPaid] = useState<boolean | null>(null);
   const [isPolling, setIsPolling] = useState(true);
   const retries = useRef(0);
 
-  useEffect(() => {
+  const startPolling = () => {
     const check = async () => {
       const { ok, order } = await getOrderById(id);
 
@@ -43,6 +44,35 @@ export default function OrderSuccessPage() {
     };
 
     check();
+  };
+
+  useEffect(() => {
+    const paymentId = searchParams.get('payment_id');
+
+    if (!paymentId) {
+      startPolling();
+      return;
+    }
+
+    verifyPayment(paymentId).then((result) => {
+      if (result.ok && result.isPaid) {
+        setIsPaid(true);
+        setIsPolling(false);
+        return;
+      }
+
+      if (
+        result.ok &&
+        !result.isPaid &&
+        (result.status === 'in_process' || result.status === 'pending')
+      ) {
+        startPolling();
+        return;
+      }
+
+      // fallback: cualquier otro resultado (error, rejected, etc.) → polling
+      startPolling();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -81,7 +111,6 @@ export default function OrderSuccessPage() {
     );
   }
 
-  // Polling exhausted without confirming payment (webhook might still be coming)
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
       <div className="text-yellow-500 text-6xl">⏳</div>

@@ -36,6 +36,7 @@ export * from './payments/set-transaction-id';
 export * from './payments/paypal-check-payment';
 export * from './payments/create-mp-preference';
 export * from './payments/upload-payment-receipt';
+export * from './payments/verify-payment';
 
 
 export * from './product/delete-product-image';

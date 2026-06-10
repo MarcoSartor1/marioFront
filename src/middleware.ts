@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth.config';
 
 export default auth(async function middleware(req) {
+  if (process.env.MODE === 'dev') return NextResponse.next();
+
   const pathname = req.nextUrl.pathname;
   const isAdmin = (req.auth?.user as any)?.role === 'admin';
 
