@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 
-import { getPaginatedProductsWithImages, syncXubioProducts } from '@/actions';
+import { getPaginatedProductsWithImages } from '@/actions';
 import { Pagination, ProductGrid } from '@/components';
 import { titleFont } from '@/config/fonts';
 import { HomeSearchInput } from './ui/HomeSearchInput';
@@ -17,8 +17,6 @@ export default async function Home({ searchParams }: Props) {
 
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   const query = searchParams.q?.trim() ?? '';
-
-  await syncXubioProducts().catch(() => null);
 
   const { products, totalPages } = await getPaginatedProductsWithImages({
     page,

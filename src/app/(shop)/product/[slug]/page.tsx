@@ -11,7 +11,7 @@ import {
   SizeSelector,
   StockLabel,
 } from "@/components";
-import { getProductBySlug, syncXubioProducts } from "@/actions";
+import { getProductBySlug } from "@/actions";
 import { AddToCart } from './ui/AddToCart';
 
 interface Props {
@@ -47,8 +47,6 @@ export async function generateMetadata(
 
 export default async function ProductBySlugPage({ params }: Props) {
   const { slug } = params;
-
-  await syncXubioProducts().catch(() => null);
 
   const product = await getProductBySlug(slug);
 

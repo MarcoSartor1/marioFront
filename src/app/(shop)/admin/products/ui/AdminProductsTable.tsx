@@ -4,13 +4,12 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { AdminProduct } from '@/interfaces';
-import { toggleProductPublish, syncXubioProducts } from '@/actions';
+import { toggleProductPublish } from '@/actions';
 import { ProductImage } from '@/components';
 import { currencyFormat } from '@/utils';
 
 interface Props {
   products: AdminProduct[];
-  isAdmin: boolean;
 }
 
 interface Toast {
@@ -18,12 +17,11 @@ interface Toast {
   message: string;
 }
 
-export function AdminProductsTable({ products, isAdmin }: Props) {
+export function AdminProductsTable({ products }: Props) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<'publish' | 'unpublish' | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const showToast = (t: Toast) => {
@@ -62,22 +60,6 @@ export function AdminProductsTable({ products, isAdmin }: Props) {
         showToast({ type: 'error', message: result.message ?? 'No se pudo actualizar el estado' });
       }
     });
-  };
-
-  const handleSyncXubio = async () => {
-    setIsSyncing(true);
-    const result = await syncXubioProducts();
-    setIsSyncing(false);
-
-    if (result.ok) {
-      showToast({
-        type: 'success',
-        message: `Sincronización completa: ${result.data.created} productos nuevos importados de ${result.data.total} totales`,
-      });
-      router.refresh();
-    } else {
-      showToast({ type: 'error', message: result.message });
-    }
   };
 
   const hasSelection = selectedIds.size > 0;
@@ -122,25 +104,6 @@ export function AdminProductsTable({ products, isAdmin }: Props) {
           )}
           {isPending && pendingAction === 'publish' ? 'Publicando...' : 'Publicar seleccionados'}
         </button>
-        {isAdmin && (
-          <button
-            onClick={handleSyncXubio}
-            disabled={isSyncing}
-            className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isSyncing ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
-                </svg>
-                Sincronizando...
-              </>
-            ) : (
-              'Sincronizar con Xubio'
-            )}
-          </button>
-        )}
         <Link href="/admin/products/bulk-upload" className="btn-secondary">
           Carga masiva
         </Link>

@@ -3,7 +3,6 @@ export const revalidate = 0;
 import { Suspense } from 'react';
 import { getAdminProducts } from '@/actions';
 import { Pagination, Title } from '@/components';
-import { auth } from '@/auth.config';
 import { redirect } from 'next/navigation';
 import { AdminProductsTable } from './ui/AdminProductsTable';
 import { ProductFilters } from './ui/ProductFilters';
@@ -20,19 +19,14 @@ interface Props {
 export default async function AdminProductsPage({ searchParams }: Props) {
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
 
-  const [{ products, totalPages }, session] = await Promise.all([
-    getAdminProducts({
-      page,
-      search: searchParams.search,
-      sortByStock: searchParams.sortByStock,
-      status: searchParams.status,
-    }),
-    auth(),
-  ]);
+  const { products, totalPages } = await getAdminProducts({
+    page,
+    search: searchParams.search,
+    sortByStock: searchParams.sortByStock,
+    status: searchParams.status,
+  });
 
   if (products.length === 0 && page > 1) redirect('/admin/products');
-
-  const isAdmin = session?.user?.role === 'admin';
 
   return (
     <>
@@ -42,7 +36,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         <Suspense>
           <ProductFilters />
         </Suspense>
-        <AdminProductsTable products={products} isAdmin={isAdmin} />
+        <AdminProductsTable products={products} />
         <Pagination totalPages={totalPages} />
       </div>
     </>
