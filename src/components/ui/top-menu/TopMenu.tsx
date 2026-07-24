@@ -94,12 +94,12 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
           </Link>
 
           {showDropdown && categories.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 bg-[#FDFAF5] border border-amber-100 shadow-lg rounded-md py-1 z-50 min-w-[160px]">
+            <div className="absolute top-full left-0 mt-1 bg-[#FDFAF5] border border-amber-100 shadow-lg rounded-md p-3 z-50 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 w-max max-w-[90vw]">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/category/${cat.name}`}
-                  className="block px-4 py-2 text-sm hover:bg-gray-100 transition-colors capitalize"
+                  className="block px-2 py-1.5 text-sm rounded hover:bg-gray-100 transition-colors capitalize whitespace-nowrap"
                   onClick={() => setShowDropdown(false)}
                 >
                   {cat.name}

@@ -6,8 +6,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 import {
+  IoChevronDownOutline,
   IoCloseOutline,
   IoCloudUploadOutline,
+  IoGridOutline,
   IoListOutline,
   IoLocationOutline,
   IoLogInOutline,
@@ -22,12 +24,14 @@ import {
 import { useUIStore } from "@/store";
 import { useNavigationStore } from "@/store/navigation/navigation-store";
 import { logout } from "@/actions";
+import { Category } from "@/interfaces";
 
 interface Props {
   isContactPagePublished?: boolean;
+  categories?: Category[];
 }
 
-export const Sidebar = ({ isContactPagePublished = false }: Props) => {
+export const Sidebar = ({ isContactPagePublished = false, categories = [] }: Props) => {
   const isSideMenuOpen = useUIStore((state) => state.isSideMenuOpen);
   const closeMenu = useUIStore((state) => state.closeSideMenu);
 
@@ -36,6 +40,7 @@ export const Sidebar = ({ isContactPagePublished = false }: Props) => {
   const isAdmin = session?.user.role === "admin";
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCategories, setShowCategories] = useState(false);
   const router = useRouter();
   const startLoading = useNavigationStore((s) => s.startLoading);
 
@@ -52,21 +57,21 @@ export const Sidebar = ({ isContactPagePublished = false }: Props) => {
     <div>
       {/* Background black */}
       {isSideMenuOpen && (
-        <div className="fixed top-0 left-0 w-screen h-screen z-10 bg-black opacity-30" />
+        <div className="fixed top-0 left-0 w-screen h-screen z-40 bg-black opacity-30" />
       )}
 
       {/* Blur */}
       {isSideMenuOpen && (
         <div
           onClick={closeMenu}
-          className="fade-in fixed top-0 left-0 w-screen h-screen z-10 backdrop-filter backdrop-blur-sm"
+          className="fade-in fixed top-0 left-0 w-screen h-screen z-40 backdrop-filter backdrop-blur-sm"
         />
       )}
 
       {/* Sidemenu */}
       <nav
         className={clsx(
-          "fixed p-5 right-0 top-0 w-full sm:w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300 flex flex-col",
+          "fixed p-5 right-0 top-0 w-full sm:w-[500px] h-screen bg-white z-50 shadow-2xl transform transition-all duration-300 flex flex-col",
           {
             "translate-x-full": !isSideMenuOpen,
           }
@@ -92,6 +97,39 @@ export const Sidebar = ({ isContactPagePublished = false }: Props) => {
 
         {/* Menú */}
         <div className="overflow-y-auto flex-1 pb-5">
+
+        {categories.length > 0 && (
+          <div className="mt-10">
+            <button
+              onClick={() => setShowCategories((v) => !v)}
+              className="flex w-full items-center justify-between p-2 hover:bg-gray-100 rounded transition-all"
+            >
+              <span className="flex items-center">
+                <IoGridOutline size={30} />
+                <span className="ml-3 text-xl">Categorías</span>
+              </span>
+              <IoChevronDownOutline
+                size={20}
+                className={clsx("transition-transform", { "rotate-180": showCategories })}
+              />
+            </button>
+
+            {showCategories && (
+              <div className="mt-2 ml-4 flex flex-col">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.name}`}
+                    onClick={() => closeMenu()}
+                    className="p-2 pl-8 text-lg capitalize hover:bg-gray-100 rounded transition-all"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {isContactPagePublished && (
           <Link
