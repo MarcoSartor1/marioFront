@@ -40,6 +40,7 @@ export * from './payments/verify-payment';
 
 
 export * from './product/delete-product-image';
+export * from './product/delete-products';
 export * from './product/create-update-product';
 export * from './product/get-admin-products';
 export * from './product/get-product-by-slug';

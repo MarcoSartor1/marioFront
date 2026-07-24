@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { AdminProduct } from '@/interfaces';
-import { toggleProductPublish } from '@/actions';
+import { toggleProductPublish, deleteProducts } from '@/actions';
 import { ProductImage } from '@/components';
 import { currencyFormat } from '@/utils';
 
@@ -21,7 +21,9 @@ export function AdminProductsTable({ products }: Props) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
-  const [pendingAction, setPendingAction] = useState<'publish' | 'unpublish' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'publish' | 'unpublish' | 'delete' | null>(
+    null,
+  );
   const [toast, setToast] = useState<Toast | null>(null);
 
   const showToast = (t: Toast) => {
@@ -58,6 +60,42 @@ export function AdminProductsTable({ products }: Props) {
         router.refresh();
       } else {
         showToast({ type: 'error', message: result.message ?? 'No se pudo actualizar el estado' });
+      }
+    });
+  };
+
+  const handleDelete = (ids: string[], label: string) => {
+    if (ids.length === 0) return;
+    const confirmMessage =
+      ids.length === 1
+        ? `¿Eliminar "${label}"? Esta acción no se puede deshacer.`
+        : `¿Eliminar ${ids.length} productos seleccionados? Esta acción no se puede deshacer.`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setPendingAction('delete');
+    startTransition(async () => {
+      const result = await deleteProducts(ids);
+      setSelectedIds(new Set());
+      setPendingAction(null);
+
+      if (result.ok) {
+        const blockedCount = result.blocked?.length ?? 0;
+        if (blockedCount > 0) {
+          const blockedTitles = result.blocked!.map((p) => p.title).join(', ');
+          showToast({
+            type: 'error',
+            message: `${result.deleted} eliminado(s). ${blockedCount} no se pudieron eliminar por tener pedidos asociados: ${blockedTitles}`,
+          });
+        } else {
+          showToast({
+            type: 'success',
+            message: `${result.deleted} ${result.deleted === 1 ? 'producto eliminado' : 'productos eliminados'} correctamente`,
+          });
+        }
+        router.refresh();
+      } else {
+        showToast({ type: 'error', message: result.message ?? 'No se pudo eliminar' });
       }
     });
   };
@@ -104,6 +142,19 @@ export function AdminProductsTable({ products }: Props) {
           )}
           {isPending && pendingAction === 'publish' ? 'Publicando...' : 'Publicar seleccionados'}
         </button>
+        <button
+          onClick={() => handleDelete(Array.from(selectedIds), '')}
+          disabled={!hasSelection || isPending}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-medium"
+        >
+          {isPending && pendingAction === 'delete' && (
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+          )}
+          {isPending && pendingAction === 'delete' ? 'Eliminando...' : 'Eliminar seleccionados'}
+        </button>
         <Link href="/admin/products/bulk-upload" className="btn-secondary">
           Carga masiva
         </Link>
@@ -130,6 +181,7 @@ export function AdminProductsTable({ products }: Props) {
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Inventario</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Tallas</th>
             <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Estado</th>
+            <th className="text-sm font-medium text-gray-900 px-6 py-4 text-left">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -184,6 +236,16 @@ export function AdminProductsTable({ products }: Props) {
                     Borrador
                   </span>
                 )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <button
+                  onClick={() => handleDelete([product.id], product.title)}
+                  disabled={isPending}
+                  className="text-red-600 hover:text-red-800 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium"
+                  title="Eliminar producto"
+                >
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}
