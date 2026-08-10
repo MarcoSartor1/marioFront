@@ -542,6 +542,10 @@ export const ProductForm = ({ product, categories }: Props) => {
             </span>
           </div>
 
+          <p className="text-xs text-gray-400 mb-1">
+            Recomendado: 1000&times;1000&nbsp;px (relación 1:1, cuadrada) &mdash; mínimo 800&nbsp;px de lado &mdash; menos de 2&nbsp;MB
+          </p>
+
           {remainingSlots > 0 && (
             <input
               ref={fileInputRef}

@@ -17,12 +17,14 @@ export * from './category/delete-category';
 
 export * from './config/get-store-config';
 export * from './config/get-xubio-config-data';
+export * from './config/get-home-slides';
 export * from './config/update-published-status';
 export * from './config/update-contact-config';
 export * from './config/update-logo-config';
 export * from './config/update-shipping-config';
 export * from './config/update-xubio-config';
 export * from './config/update-theme-config';
+export * from './config/update-home-slides';
 
 export * from './country/get-countries';
 

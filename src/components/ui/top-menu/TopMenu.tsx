@@ -45,29 +45,31 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
   }, []);
 
   return (
-    <nav className="sticky top-0 z-30 flex px-5 justify-between items-center w-full h-16 bg-[#FDFAF5] border-b border-amber-100 shadow-sm">
-      {/* Logo */}
-      <div>
-        <Link href="/" className="flex items-center gap-2">
+    <nav className="sticky top-0 z-30 w-full bg-[#FDFAF5] border-b border-amber-100 shadow-sm">
+      {/* Fila 1: logo centrado + búsqueda/carrito/menú */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center px-5 py-3 sm:py-4">
+        <div />
+
+        <Link href="/" className="flex items-center justify-center gap-3 justify-self-center">
           {logoUrl ? (
             <>
               <Image
                 src={logoUrl}
                 alt={storeName}
-                width={160}
-                height={40}
-                className="object-contain h-10 w-auto"
+                width={260}
+                height={80}
+                className="object-contain h-14 sm:h-20 w-auto"
                 priority
               />
               {showTitleWithLogo && (
-                <span className={`${titleFont.className} antialiased font-bold hidden sm:inline`}>
+                <span className={`${titleFont.className} antialiased font-bold text-lg sm:text-xl hidden sm:inline`}>
                   {storeName}
                 </span>
               )}
             </>
           ) : (
             <>
-              <span className={`${titleFont.className} antialiased font-bold`}>
+              <span className={`${titleFont.className} antialiased font-bold text-2xl sm:text-3xl`}>
                 {storeName.split('|')[0].trim()}
               </span>
               {storeName.includes('|') && (
@@ -76,15 +78,43 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
             </>
           )}
         </Link>
+
+        <div className="flex items-center justify-end justify-self-end">
+          <Link href="/search" className="mx-2">
+            <IoSearchOutline className="w-5 h-5" />
+          </Link>
+
+          <Link href={
+            ((totalItemsInCart === 0) && loaded)
+              ? '/empty'
+              : "/cart"
+          } className="mx-2">
+            <div className="relative">
+              {(loaded && totalItemsInCart > 0) && (
+                <span className="fade-in absolute text-xs px-1 rounded-full font-bold -top-2 -right-2 bg-primary text-white">
+                  {totalItemsInCart}
+                </span>
+              )}
+              <IoCartOutline className="w-5 h-5" />
+            </div>
+          </Link>
+
+          <button
+            onClick={openSideMenu}
+            className="m-2 p-2 rounded-md transition-all hover:bg-gray-100"
+          >
+            Menú
+          </button>
+        </div>
       </div>
 
-      {/* Center Menu */}
-      <div className="hidden sm:flex items-center" ref={dropdownRef}>
-        <div
-          className="relative inline-block"
-          onMouseEnter={() => setShowDropdown(true)}
-          onMouseLeave={() => setShowDropdown(false)}
-        >
+      {/* Fila 2: navegación centrada */}
+      <div
+        className="relative hidden sm:flex justify-center items-center gap-2 border-t border-amber-100 py-2"
+        ref={dropdownRef}
+        onMouseLeave={() => setShowDropdown(false)}
+      >
+        <div onMouseEnter={() => setShowDropdown(true)}>
           <Link
             href="/"
             className="m-2 p-2 rounded-md transition-all hover:bg-gray-100"
@@ -92,21 +122,6 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
           >
             Productos
           </Link>
-
-          {showDropdown && categories.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 bg-[#FDFAF5] border border-amber-100 shadow-lg rounded-md p-3 z-50 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 w-max max-w-[90vw]">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/category/${cat.name}`}
-                  className="block px-2 py-1.5 text-sm rounded hover:bg-gray-100 transition-colors capitalize whitespace-nowrap"
-                  onClick={() => setShowDropdown(false)}
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
 
         {isContactPagePublished && (
@@ -114,35 +129,21 @@ export const TopMenu = ({ storeName, logoUrl, showTitleWithLogo, categories, isC
             Contacto
           </Link>
         )}
-      </div>
 
-      {/* Search, Cart, Menu */}
-      <div className="flex items-center">
-        <Link href="/search" className="mx-2">
-          <IoSearchOutline className="w-5 h-5" />
-        </Link>
-
-        <Link href={
-          ((totalItemsInCart === 0) && loaded)
-            ? '/empty'
-            : "/cart"
-        } className="mx-2">
-          <div className="relative">
-            {(loaded && totalItemsInCart > 0) && (
-              <span className="fade-in absolute text-xs px-1 rounded-full font-bold -top-2 -right-2 bg-primary text-white">
-                {totalItemsInCart}
-              </span>
-            )}
-            <IoCartOutline className="w-5 h-5" />
+        {showDropdown && categories.length > 0 && (
+          <div className="absolute top-full left-1/2 -translate-x-1/2 bg-[#FDFAF5] border border-amber-100 shadow-lg rounded-md p-3 z-50 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 w-max max-w-[90vw]">
+            {[...categories].sort((a, b) => a.name.localeCompare(b.name, 'es')).map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/category/${cat.name}`}
+                className="block px-2 py-1.5 text-sm rounded hover:bg-gray-100 transition-colors capitalize whitespace-nowrap"
+                onClick={() => setShowDropdown(false)}
+              >
+                {cat.name}
+              </Link>
+            ))}
           </div>
-        </Link>
-
-        <button
-          onClick={openSideMenu}
-          className="m-2 p-2 rounded-md transition-all hover:bg-gray-100"
-        >
-          Menú
-        </button>
+        )}
       </div>
     </nav>
   );

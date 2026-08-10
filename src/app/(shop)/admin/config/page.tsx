@@ -1,17 +1,19 @@
 export const revalidate = 0;
 
-import { getStoreConfig, getXubioConfigData } from '@/actions';
+import { getStoreConfig, getXubioConfigData, getHomeSlides } from '@/actions';
 import { Title } from '@/components';
 import { PublishToggle } from './ui/PublishToggle';
 import { LogoUploader } from './ui/LogoUploader';
 import { ShippingConfigForm } from './ui/ShippingConfigForm';
 import { XubioConfigForm } from './ui/XubioConfigForm';
 import { ThemeConfigForm } from './ui/ThemeConfigForm';
+import { SliderManager } from './ui/SliderManager';
 
 export default async function AdminConfigPage() {
-  const [{ config }, { ajustesStock, listasPrecio, depositos }] = await Promise.all([
+  const [{ config }, { ajustesStock, listasPrecio, depositos }, homeSlides] = await Promise.all([
     getStoreConfig(),
     getXubioConfigData(),
+    getHomeSlides(true),
   ]);
   const isPublished = config.isPublished !== false;
 
@@ -32,6 +34,15 @@ export default async function AdminConfigPage() {
             currentLogoUrl={config.logoUrl ?? null}
             showTitleWithLogo={config.showTitleWithLogo ?? false}
           />
+        </div>
+
+        {/* Slider de la home */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Slider de la home</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Fotos grandes que rotan en la parte superior de la página principal.
+          </p>
+          <SliderManager initialSlides={homeSlides} />
         </div>
 
         {/* Estado del sitio */}

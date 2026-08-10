@@ -31,6 +31,11 @@ function NavigationLoaderInner() {
         e.metaKey || e.ctrlKey || e.shiftKey || e.altKey
       ) return;
 
+      const target = new URL(href, window.location.href);
+      if (target.pathname === window.location.pathname && target.search === window.location.search) {
+        return;
+      }
+
       startLoading();
     };
 

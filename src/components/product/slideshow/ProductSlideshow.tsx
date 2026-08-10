@@ -13,8 +13,8 @@ import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
 import './slideshow.css';
-import Image from 'next/image';
 import { ProductImage } from '../product-image/ProductImage';
+import { ProductImageLightbox } from './ProductImageLightbox';
 
 
 
@@ -29,7 +29,18 @@ interface Props {
 export const ProductSlideshow = ( { images, title, className }: Props ) => {
 
   const [ thumbsSwiper, setThumbsSwiper ] = useState<SwiperObject>();
+  const [ mainSwiper, setMainSwiper ] = useState<SwiperObject>();
+  const [ lightboxIndex, setLightboxIndex ] = useState<number | null>(null);
 
+  const openLightbox = () => {
+    mainSwiper?.autoplay?.stop();
+    setLightboxIndex(mainSwiper?.activeIndex ?? 0);
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+    mainSwiper?.autoplay?.start();
+  };
 
   return (
     <div className={ className }>
@@ -49,24 +60,36 @@ export const ProductSlideshow = ( { images, title, className }: Props ) => {
           swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null
         } }
         modules={ [ FreeMode, Navigation, Thumbs, Autoplay ] }
+        onSwiper={ setMainSwiper }
         className="mySwiper2"
       >
 
         {
           images.map( image => (
             <SwiperSlide key={ image }>
-              <ProductImage
-                width={ 1024 }
-                height={ 800 }
-                src={ image }
-                alt={ title }
-                className="rounded-lg object-fill"
-              />
+              <div className="w-full h-full cursor-zoom-in" onClick={ openLightbox }>
+                <ProductImage
+                  width={ 1024 }
+                  height={ 800 }
+                  src={ image }
+                  alt={ title }
+                  className="rounded-lg object-fill"
+                />
+              </div>
             </SwiperSlide>
 
           ) )
         }
       </Swiper>
+
+      {lightboxIndex !== null && (
+        <ProductImageLightbox
+          images={images}
+          title={title}
+          initialIndex={lightboxIndex}
+          onClose={closeLightbox}
+        />
+      )}
 
 
       <Swiper
