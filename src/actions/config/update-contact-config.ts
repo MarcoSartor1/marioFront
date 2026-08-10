@@ -10,6 +10,8 @@ export interface ContactConfigInput {
   mapLng?: number | null;
   businessHours?: string | null;
   whatsapp?: string | null;
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
   contactEmail?: string | null;
   contactPhone?: string | null;
   isContactPagePublished?: boolean;

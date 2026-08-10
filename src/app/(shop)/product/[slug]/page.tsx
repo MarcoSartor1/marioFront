@@ -87,7 +87,7 @@ export default async function ProductBySlugPage({ params }: Props) {
 
         {/* Descripción */}
         <h3 className="font-bold text-sm">Descripción</h3>
-        <p className="font-light">{product.description}</p>
+        <p className="font-light whitespace-pre-wrap">{product.description}</p>
       </div>
     </div>
   );

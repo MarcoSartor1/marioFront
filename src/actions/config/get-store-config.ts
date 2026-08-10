@@ -24,6 +24,8 @@ const defaultConfig = {
   mapLng: null,
   businessHours: null,
   whatsapp: null,
+  facebookUrl: null,
+  instagramUrl: null,
   isContactPagePublished: false,
   isPublished: true,
   xubioStockAdjustmentDoc: null,

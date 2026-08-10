@@ -8,6 +8,8 @@ interface FormInputs {
   contactPhone: string;
   contactEmail: string;
   whatsapp: string;
+  facebookUrl: string;
+  instagramUrl: string;
   businessHours: string;
   mapLat: string;
   mapLng: string;
@@ -19,6 +21,8 @@ interface ContactConfig {
   contactPhone?: string | null;
   contactEmail?: string | null;
   whatsapp?: string | null;
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
   businessHours?: string | null;
   mapLat?: number | null;
   mapLng?: number | null;
@@ -41,6 +45,8 @@ export const ContactConfigForm = ({ config }: Props) => {
       contactPhone: config.contactPhone ?? '',
       contactEmail: config.contactEmail ?? '',
       whatsapp: config.whatsapp ?? '',
+      facebookUrl: config.facebookUrl ?? '',
+      instagramUrl: config.instagramUrl ?? '',
       businessHours: config.businessHours ?? '',
       mapLat: config.mapLat?.toString() ?? '',
       mapLng: config.mapLng?.toString() ?? '',
@@ -61,6 +67,8 @@ export const ContactConfigForm = ({ config }: Props) => {
       contactPhone: data.contactPhone || null,
       contactEmail: data.contactEmail || null,
       whatsapp: data.whatsapp || null,
+      facebookUrl: data.facebookUrl || null,
+      instagramUrl: data.instagramUrl || null,
       businessHours: data.businessHours || null,
       mapLat: lat && !isNaN(lat) ? lat : null,
       mapLng: lng && !isNaN(lng) ? lng : null,
@@ -146,6 +154,28 @@ export const ContactConfigForm = ({ config }: Props) => {
         <p className="text-xs text-gray-500 mt-1">
           Formato internacional sin el +. Ej: 5491112345678
         </p>
+      </div>
+
+      {/* Redes sociales */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Facebook</label>
+          <input
+            type="text"
+            placeholder="Ej: https://facebook.com/tutienda"
+            className="p-2 border rounded-md bg-gray-100 w-full"
+            {...register('facebookUrl')}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">Instagram</label>
+          <input
+            type="text"
+            placeholder="Ej: https://instagram.com/tutienda"
+            className="p-2 border rounded-md bg-gray-100 w-full"
+            {...register('instagramUrl')}
+          />
+        </div>
       </div>
 
       {/* Horario */}
