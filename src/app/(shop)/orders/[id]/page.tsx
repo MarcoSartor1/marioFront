@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import Image from "next/image";
+import Image from '@/components/ui/image/StoreImage';
 
 import { getOrderById, getStoreConfig } from "@/actions";
 import { currencyFormat } from "@/utils";

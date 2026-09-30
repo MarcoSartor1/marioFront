@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
 
 interface Props {
   src?: string;
@@ -8,6 +8,7 @@ interface Props {
   width?: number;
   height?: number;
   fill?: boolean;
+  sizes?: string;
 }
 
 export const ProductImage = ({
@@ -18,6 +19,7 @@ export const ProductImage = ({
   width,
   height,
   fill,
+  sizes,
 }: Props) => {
 
   const localSrc = ( src )
@@ -32,6 +34,7 @@ export const ProductImage = ({
         src={ localSrc }
         alt={ alt }
         fill
+        sizes={sizes ?? "(max-width: 639px) 50vw, 25vw"}
         className={ className }
         style={ style }
       />
@@ -41,6 +44,7 @@ export const ProductImage = ({
   return (
     <Image
       src={ localSrc }
+      sizes={sizes}
       width={ width }
       height={ height }
       alt={ alt }

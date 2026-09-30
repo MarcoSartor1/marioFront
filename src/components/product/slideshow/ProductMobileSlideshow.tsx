@@ -58,6 +58,7 @@ export const ProductMobileSlideshow = ( { images, title, className }: Props ) =>
               <div className="w-full" onClick={ openLightbox }>
                 <ProductImage
                   width={ 600 }
+                  sizes="100vw"
                   height={ 600 }
                   src={ image }
                   alt={ title }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
 import { titleFont } from '@/config/fonts';
 import type { HomeSlide } from '@/actions/config/get-home-slides';
 
@@ -46,7 +46,7 @@ export const HeroSlider = ({ slides }: Props) => {
         fill
         priority={index === 0}
         className="object-cover"
-        unoptimized
+        sizes="(max-width: 639px) calc(100vw - 32px), calc(100vw - 80px)"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 

@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
+import { validateImageFiles } from '@/lib/image-upload-limits';
 import { createHomeSlide, deleteHomeSlide, reorderHomeSlides, updateHomeSlide } from '@/actions';
 import type { HomeSlide } from '@/actions/config/get-home-slides';
 
@@ -29,8 +30,9 @@ export const SliderManager = ({ initialSlides }: Props) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError('El archivo supera 2 MB. Elegí una imagen más liviana.');
+    const imageError = validateImageFiles([file], 2 * 1024 * 1024);
+    if (imageError) {
+      setError(imageError);
       e.target.value = '';
       return;
     }
@@ -135,7 +137,7 @@ export const SliderManager = ({ initialSlides }: Props) => {
             <div key={slide.id} className="border border-gray-200 rounded-lg p-3">
               <div className="flex gap-3">
                 <div className="relative h-16 w-28 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
-                  <Image src={slide.imageUrl} alt={slide.title ?? 'Slide'} fill className="object-cover" unoptimized />
+                  <Image src={slide.imageUrl} alt={slide.title ?? 'Slide'} fill className="object-cover" sizes="160px" />
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-1.5">

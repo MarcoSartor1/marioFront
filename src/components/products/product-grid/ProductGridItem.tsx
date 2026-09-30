@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
 import Link from 'next/link';
 import { useState } from 'react';
 import clsx from 'clsx';
@@ -67,6 +67,7 @@ export const ProductGridItem = ({ product }: Props) => {
           src={getImageSrc(displayImage)}
           alt={product.title}
           fill
+          sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
           className="object-contain transition-opacity duration-300"
           onMouseEnter={() => product.images[1] && setDisplayImage(product.images[1])}
           onMouseLeave={() => setDisplayImage(product.images[0])}

@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
 import Link from 'next/link';
 import { titleFont } from '@/config/fonts';
 

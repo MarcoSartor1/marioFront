@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, useTransition } from 'react';
-import Image from 'next/image';
+import Image from '@/components/ui/image/StoreImage';
+import { validateImageFiles } from '@/lib/image-upload-limits';
 import { updateLogoConfig, removeStoreLogo } from '@/actions';
 
 interface Props {
@@ -22,8 +23,9 @@ export const LogoUploader = ({ currentLogoUrl, showTitleWithLogo: initial }: Pro
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1024 * 1024) {
-      setError('El archivo supera 1 MB. Elegí una imagen más pequeña.');
+    const imageError = validateImageFiles([file], 1024 * 1024);
+    if (imageError) {
+      setError(imageError);
       e.target.value = '';
       return;
     }
@@ -80,7 +82,7 @@ export const LogoUploader = ({ currentLogoUrl, showTitleWithLogo: initial }: Pro
                 alt="Logo de la tienda"
                 fill
                 className="object-contain p-2"
-                unoptimized
+                sizes="128px"
               />
             </div>
             <button

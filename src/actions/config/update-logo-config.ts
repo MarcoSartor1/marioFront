@@ -3,13 +3,8 @@
 import { auth } from '@/auth.config';
 import { apiPatch } from '@/lib/api';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadStoreImage } from '@/lib/upload-store-image';
+import { validateImageFiles } from '@/lib/image-upload-limits';
 
 export const updateLogoConfig = async (formData: FormData) => {
   const session = await auth();
@@ -24,14 +19,11 @@ export const updateLogoConfig = async (formData: FormData) => {
     let logoUrl: string | undefined;
 
     if (logoFile && logoFile.size > 0) {
-      const buffer = await logoFile.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const mime = logoFile.type || 'image/png';
-      const result = await cloudinary.uploader.upload(
-        `data:${mime};base64,${base64}`,
-        { folder: 'store-config', public_id: 'logo', overwrite: true, invalidate: true, format: 'webp' },
-      );
-      logoUrl = result.secure_url;
+      const imageError = validateImageFiles([logoFile], 1024 * 1024);
+      if (imageError) return { ok: false, message: imageError };
+      logoUrl = await uploadStoreImage(logoFile, {
+        folder: 'store-config', public_id: 'logo', overwrite: true, invalidate: true,
+      });
     }
 
     const patch: Record<string, unknown> = { showTitleWithLogo };

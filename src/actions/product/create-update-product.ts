@@ -3,12 +3,8 @@
 import { auth } from '@/auth.config';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { v2 as cloudinary } from 'cloudinary';
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadStoreImage } from '@/lib/upload-store-image';
+import { MAX_PRODUCT_PHOTOS, validateImageFiles } from '@/lib/image-upload-limits';
 
 const productSchema = z.object({
   id: z.string().uuid().optional().nullable(),
@@ -47,20 +43,25 @@ export const createUpdateProduct = async (formData: FormData) => {
     : [];
 
   const session = await auth();
+  if (session?.user.role !== 'admin') return { ok: false, message: 'No autorizado' };
   const token = (session?.user as any)?.token as string | undefined;
 
   try {
     // Subir imágenes nuevas a Cloudinary
     const imageFiles = formData.getAll('images') as File[];
     const validFiles = imageFiles.filter((f) => f.size > 0);
+    const existingImageUrls = formData.getAll('existingImages') as string[];
+    if (validFiles.length + existingImageUrls.length > MAX_PRODUCT_PHOTOS) {
+      return { ok: false, message: 'Podés guardar hasta 5 fotos por producto.' };
+    }
+    const imageError = validateImageFiles(validFiles);
+    if (imageError) return { ok: false, message: imageError };
     const uploadedImages = validFiles.length > 0 ? await uploadImages(validFiles) : [];
 
     if (uploadedImages === null) {
       return { ok: false, message: 'No se pudo cargar las imágenes' };
     }
-
-    const existingImageUrls = formData.getAll('existingImages') as string[];
-    const allImages = [...existingImageUrls, ...(uploadedImages.filter(Boolean) as string[])];
+    const allImages = [...existingImageUrls, ...uploadedImages];
 
     const body: Record<string, unknown> = {
       title: rest.title,
@@ -110,22 +111,13 @@ export const createUpdateProduct = async (formData: FormData) => {
 
 const uploadImages = async (images: File[]) => {
   try {
-    const uploadPromises = images.map(async (image) => {
-      try {
-        const buffer = await image.arrayBuffer();
-        const base64Image = Buffer.from(buffer).toString('base64');
-        return cloudinary.uploader
-          .upload(`data:image/png;base64,${base64Image}`, { format: 'webp' })
-          .then((r) => r.secure_url);
-      } catch (error) {
-        console.log(error);
-        return null;
-      }
-    });
-
-    return await Promise.all(uploadPromises);
+    const urls: string[] = [];
+    for (const image of images) {
+      urls.push(await uploadStoreImage(image));
+    }
+    return urls;
   } catch (error) {
-    console.log(error);
+    console.error('No se pudieron subir las imágenes', error);
     return null;
   }
 };

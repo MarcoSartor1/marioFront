@@ -3,13 +3,8 @@
 import { auth } from '@/auth.config';
 import { apiFetch } from '@/lib/api';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadStoreImage } from '@/lib/upload-store-image';
+import { validateImageFiles } from '@/lib/image-upload-limits';
 
 const requireAdmin = async () => {
   const session = await auth();
@@ -27,16 +22,12 @@ export const createHomeSlide = async (formData: FormData) => {
       return { ok: false, message: 'Falta la imagen del slide' };
     }
 
-    const buffer = await imageFile.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    const mime = imageFile.type || 'image/jpeg';
-    const result = await cloudinary.uploader.upload(
-      `data:${mime};base64,${base64}`,
-      { folder: 'home-slides', format: 'webp' },
-    );
+    const imageError = validateImageFiles([imageFile]);
+    if (imageError) return { ok: false, message: imageError };
+    const imageUrl = await uploadStoreImage(imageFile, { folder: 'home-slides' });
 
     const body = {
-      imageUrl: result.secure_url,
+      imageUrl,
       title: (formData.get('title') as string) || undefined,
       subtitle: (formData.get('subtitle') as string) || undefined,
       linkUrl: (formData.get('linkUrl') as string) || undefined,

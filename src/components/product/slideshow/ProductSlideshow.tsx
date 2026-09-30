@@ -70,6 +70,7 @@ export const ProductSlideshow = ( { images, title, className }: Props ) => {
               <div className="w-full h-full cursor-zoom-in" onClick={ openLightbox }>
                 <ProductImage
                   width={ 1024 }
+                  sizes="(max-width: 767px) 100vw, 66vw"
                   height={ 800 }
                   src={ image }
                   alt={ title }
@@ -106,6 +107,7 @@ export const ProductSlideshow = ( { images, title, className }: Props ) => {
             <SwiperSlide key={ image }>
               <ProductImage
                 width={ 300 }
+                sizes="17vw"
                 height={ 300 }
                 src={ image }
                 alt={ title }

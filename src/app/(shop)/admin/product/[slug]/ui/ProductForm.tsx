@@ -8,7 +8,7 @@ import { createUpdateProduct, deleteProductImage, createUpdateCategory } from "@
 import { useRouter } from "next/navigation";
 import { ProductImage } from "@/components";
 
-const MAX_PHOTOS = 5;
+import { MAX_PRODUCT_PHOTOS as MAX_PHOTOS, validateImageFiles } from '@/lib/image-upload-limits';
 
 function getCloudinaryAngle(url: string): number {
   const m = url.match(/\/a_(\d+)/);
@@ -46,9 +46,13 @@ async function rotateFileByDegrees(file: File, degrees: number): Promise<File> {
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       URL.revokeObjectURL(objUrl);
       canvas.toBlob(
-        (blob) => resolve(new File([blob!], file.name, { type: file.type })),
+        (blob) => resolve(blob ? new File([blob], file.name, { type: blob.type }) : file),
         file.type
       );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objUrl);
+      resolve(file);
     };
     img.src = objUrl;
   });
@@ -155,6 +159,13 @@ export const ProductForm = ({ product, categories }: Props) => {
       alert(`Solo puedes agregar ${available} foto(s) más (máximo ${MAX_PHOTOS} en total).`);
     }
 
+    const imageError = validateImageFiles([...pendingFiles, ...toAdd]);
+    if (imageError) {
+      setErrorMessage(imageError);
+      e.target.value = '';
+      return;
+    }
+    setErrorMessage(null);
     setPendingFiles((prev) => [...prev, ...toAdd]);
     // Reset input so same files can be re-selected after removal
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -256,14 +267,23 @@ export const ProductForm = ({ product, categories }: Props) => {
       }
     }
 
-    const rotatedFiles = await Promise.all(
-      pendingFiles.map((file, i) => rotateFileByDegrees(file, pendingRotations[i] ?? 0))
-    );
+    const rotatedFiles: File[] = [];
+    for (let i = 0; i < pendingFiles.length; i++) {
+      rotatedFiles.push(await rotateFileByDegrees(pendingFiles[i], pendingRotations[i] ?? 0));
+    }
+    const imageError = validateImageFiles(rotatedFiles);
+    if (imageError) {
+      setErrorMessage(imageError);
+      setIsLoading(false);
+      return;
+    }
     for (const file of rotatedFiles) {
       formData.append("images", file);
     }
 
-    const { ok, message, product: updatedProduct } = await createUpdateProduct(formData);
+    const { ok, message, product: updatedProduct } = await createUpdateProduct(formData).catch(() => ({
+      ok: false, message: 'No se pudo guardar. Revisá la conexión y volvé a intentar.', product: undefined,
+    }));
 
     setIsLoading(false);
 

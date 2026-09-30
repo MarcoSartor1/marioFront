@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import Link from "next/link";
-import Image from "next/image";
+import Image from '@/components/ui/image/StoreImage';
 import { IoSearchOutline, IoCartOutline } from "react-icons/io5";
 
 import { titleFont } from "@/config/fonts";

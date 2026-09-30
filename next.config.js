@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // 8 MB de archivos más campos y delimitadores del formulario.
+    serverActionsBodySizeLimit: '10mb',
+  },
   images: {
     remotePatterns: [
       {
