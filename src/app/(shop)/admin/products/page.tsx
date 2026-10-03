@@ -1,6 +1,7 @@
 export const revalidate = 0;
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { getAdminProducts } from '@/actions';
 import { Pagination, Title } from '@/components';
 import { redirect } from 'next/navigation';
@@ -31,6 +32,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   return (
     <>
       <Title title="Mantenimiento de productos" />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4">
+        <p className="text-sm text-gray-600">Configurá las cajas que usás para despachar tus productos.</p>
+        <Link href="/admin/packaging" className="text-sm font-semibold text-primary hover:underline">Cajas y embalajes →</Link>
+      </div>
 
       <div className="mb-10">
         <Suspense>

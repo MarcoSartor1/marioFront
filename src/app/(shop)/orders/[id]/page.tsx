@@ -75,7 +75,7 @@ export default async function OrdersByIdPage({ params }: Props) {
                   <span className="font-mono font-bold">{o.trackingCode}</span>
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  Podés rastrearlo en el sitio de Correo Argentino.
+                  Consultá el seguimiento en el sitio del transportista de tu pedido.
                 </p>
               </div>
             )}
@@ -95,12 +95,18 @@ export default async function OrdersByIdPage({ params }: Props) {
             <div className="w-full h-0.5 rounded bg-gray-200 mb-10" />
 
             <h2 className="text-2xl mb-2">Resumen de orden</h2>
+            {o.shippingQuote && <div className="mb-4 rounded-lg bg-gray-50 p-3 text-sm">
+              <p className="font-semibold">{o.shippingQuote.carrierName} · {o.shippingQuote.serviceName}</p>
+              {o.shippingQuote.pickupPoint && <p className="mt-1">Retiro: {o.shippingQuote.pickupPoint.name}<br />{o.shippingQuote.pickupPoint.address}</p>}
+            </div>}
             <div className="grid grid-cols-2">
               <span>No. Productos</span>
               <span className="text-right">
                 {o.itemsInOrder === 1 ? "1 artículo" : `${o.itemsInOrder} artículos`}
               </span>
 
+              <span className="mt-2">Productos:</span><span className="mt-2 text-right">{currencyFormat(o.subTotal)}</span>
+              <span className="mt-2">Envío:</span><span className="mt-2 text-right">{currencyFormat(o.shippingCost ?? 0)}</span>
               <span className="mt-5 text-2xl">Total:</span>
               <span className="mt-5 text-2xl text-right">{currencyFormat(o.total)}</span>
             </div>

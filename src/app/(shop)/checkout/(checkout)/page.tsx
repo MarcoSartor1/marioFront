@@ -1,12 +1,10 @@
 import Link from "next/link";
 
-import { getStoreConfig } from "@/actions";
 import { Title } from "@/components";
 import { ProductsInCart } from "./ui/ProductsInCart";
 import { PlaceOrder } from './ui/PlaceOrder';
 
 export default async function CheckoutPage() {
-  const { config } = await getStoreConfig();
 
   return (
     <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
@@ -26,11 +24,7 @@ export default async function CheckoutPage() {
           </div>
 
           {/* Checkout - Resumen de orden */}
-          <PlaceOrder
-            shippingCostSucursal={config.shippingCostSucursal ?? 8000}
-            shippingCostDomicilio={config.shippingCostDomicilio ?? 10000}
-            freeShippingCities={config.freeShippingCities ?? ''}
-          />
+          <PlaceOrder />
         </div>
       </div>
     </div>

@@ -24,6 +24,8 @@ const productSchema = z.object({
   colors: z.string().optional().transform((val) => (val ? val.split(',').filter(Boolean) : [])),
   tags: z.string().optional().default(''),
   gender: z.enum(['men', 'women', 'kid', 'unisex']).optional().nullable(),
+  shippingBoxId: z.union([z.string().uuid(), z.literal('')]).optional(),
+  packedWeightGrams: z.string().optional(),
 });
 
 export const createUpdateProduct = async (formData: FormData) => {
@@ -45,6 +47,11 @@ export const createUpdateProduct = async (formData: FormData) => {
   const session = await auth();
   if (session?.user.role !== 'admin') return { ok: false, message: 'No autorizado' };
   const token = (session?.user as any)?.token as string | undefined;
+
+  if (rest.shippingBoxId) {
+    const weight = Number(rest.packedWeightGrams);
+    if (!Number.isInteger(weight) || weight < 10 || weight > 10000000) return { ok: false, message: 'Ingresá el peso total del paquete en gramos (mínimo 10 g).' };
+  }
 
   try {
     // Subir imágenes nuevas a Cloudinary
@@ -77,6 +84,8 @@ export const createUpdateProduct = async (formData: FormData) => {
     if (tagsArray.length > 0) body.tags = tagsArray;
     if (rest.gender) body.gender = rest.gender;
     body.images = allImages;
+    if (rest.shippingBoxId !== undefined) body.shippingPackage = rest.shippingBoxId ? { boxId: rest.shippingBoxId, weightGrams: Number(rest.packedWeightGrams) } : null;
+
 
     const resp = await fetch(
       `${process.env.API_URL}/products${id ? `/${id}` : ''}`,

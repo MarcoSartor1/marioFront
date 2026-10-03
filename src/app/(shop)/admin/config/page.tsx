@@ -1,5 +1,7 @@
 export const revalidate = 0;
 
+import Link from 'next/link';
+
 import { getStoreConfig, getXubioConfigData, getHomeSlides } from '@/actions';
 import { Title } from '@/components';
 import { PublishToggle } from './ui/PublishToggle';
@@ -89,9 +91,15 @@ export default async function AdminConfigPage() {
 
         {/* Costos de envío */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-1">Costos de envío</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Cajas y embalajes</h2>
+          <p className="text-sm text-gray-500 mb-4">Guardá las medidas y el peso de tus cajas habituales para reutilizarlas en los envíos.</p>
+          <Link href="/admin/packaging" className="text-sm font-semibold text-primary hover:underline">Administrar embalajes →</Link>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Tarifas manuales anteriores</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Definí los costos de envío y las ciudades donde el envío es gratis.
+            El checkout ahora cotiza con Zipnova. Estos valores y las ciudades con envío gratis se conservan como referencia, pero no se aplican a las nuevas compras.
           </p>
           <ShippingConfigForm
             shippingCostSucursal={config.shippingCostSucursal ?? 8000}

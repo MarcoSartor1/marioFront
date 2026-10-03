@@ -5,6 +5,7 @@ export interface ProductVariant {
 }
 
 export interface Product {
+  shippingPackage?: { boxId: string; weightGrams: number } | null;
   id: string;
   description: string;
   images: string[];

@@ -10,6 +10,7 @@ export interface OrderProduct {
 }
 
 export interface AdminOrder {
+  shippingQuote?: { carrierName: string; serviceName: string; pickupPoint: { name: string; address: string } | null } | null;
   id: string;
   fullName: string;
   email: string;
@@ -31,6 +32,7 @@ export interface AdminOrder {
 }
 
 export interface Order {
+  shippingQuote?: { carrierName: string; serviceName: string; pickupPoint: { name: string; address: string } | null } | null;
   id: string;
   isPaid: boolean;
   paidAt: string | null;

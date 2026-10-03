@@ -372,6 +372,10 @@ export function OrdersTable({ orders: initialOrders }: Props) {
                   <p>CP: {viewOrderDetail.address.postalCode}</p>
                 )}
                 <p>Tel: {viewOrderDetail.address.phone}</p>
+                {viewOrderDetail.shippingQuote && <div className="mt-3 rounded bg-white p-3">
+                  <p className="font-medium">{viewOrderDetail.shippingQuote.carrierName} · {viewOrderDetail.shippingQuote.serviceName}</p>
+                  {viewOrderDetail.shippingQuote.pickupPoint && <p>Retiro: {viewOrderDetail.shippingQuote.pickupPoint.name}<br />{viewOrderDetail.shippingQuote.pickupPoint.address}</p>}
+                </div>}
                 {viewOrderDetail.shippingType && (
                   <p className="mt-1 text-gray-500">
                     Envío: {viewOrderDetail.shippingType === 'domicilio' ? 'A domicilio' : 'Sucursal'}

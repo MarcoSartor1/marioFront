@@ -17,6 +17,7 @@ export const placeOrder = async (
   address: Address,
   paymentMethod: PaymentMethod = 'mercadopago',
   shippingType: ShippingType = 'domicilio',
+  shippingQuoteToken?: string,
 ) => {
   const session = await auth();
 
@@ -32,6 +33,7 @@ export const placeOrder = async (
       items: productIds,
       paymentMethod,
       shippingType,
+      shippingQuoteToken,
       address: {
         firstName: address.firstName,
         lastName: address.lastName,

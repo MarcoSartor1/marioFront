@@ -7,6 +7,8 @@ import clsx from "clsx";
 import { createUpdateProduct, deleteProductImage, createUpdateCategory } from "@/actions";
 import { useRouter } from "next/navigation";
 import { ProductImage } from "@/components";
+import type { PackagingBox } from '@/interfaces/packaging.interface';
+import Link from 'next/link';
 
 import { MAX_PRODUCT_PHOTOS as MAX_PHOTOS, validateImageFiles } from '@/lib/image-upload-limits';
 
@@ -61,11 +63,15 @@ async function rotateFileByDegrees(file: File, degrees: number): Promise<File> {
 interface Props {
   product: Partial<Product> & { ProductImage?: ProductWithImage[] };
   categories: Category[];
+  boxes: PackagingBox[];
+  packagingError?: string;
 }
 
 const availableSizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
 interface FormInputs {
+  shippingBoxId: string;
+  packedWeightGrams: string;
   title: string;
   slug: string;
   description: string;
@@ -79,7 +85,7 @@ interface FormInputs {
   images?: FileList;
 }
 
-export const ProductForm = ({ product, categories }: Props) => {
+export const ProductForm = ({ product, categories, boxes, packagingError }: Props) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,6 +121,8 @@ export const ProductForm = ({ product, categories }: Props) => {
   } = useForm<FormInputs>({
     defaultValues: {
       ...product,
+      shippingBoxId: product.shippingPackage?.boxId ?? '',
+      packedWeightGrams: product.shippingPackage?.weightGrams?.toString() ?? '',
       tags: product.tags?.join(", ") ?? "",
       sizes: product.sizes ?? [],
       colors: (product as any).colors ?? [],
@@ -247,6 +255,10 @@ export const ProductForm = ({ product, categories }: Props) => {
     formData.append("description", productToSave.description);
     formData.append("price", productToSave.price.toString());
     formData.append("inStock", productToSave.inStock.toString());
+    if (!packagingError) {
+      formData.append('shippingBoxId', productToSave.shippingBoxId);
+      formData.append('packedWeightGrams', productToSave.packedWeightGrams);
+    }
 
     if (productToSave.tags?.trim()) formData.append("tags", productToSave.tags);
     if (productToSave.gender) formData.append("gender", productToSave.gender);
@@ -316,6 +328,21 @@ export const ProductForm = ({ product, categories }: Props) => {
     >
       {/* Columna izquierda */}
       <div className="w-full">
+        <fieldset className="mb-5 rounded-xl border border-gray-200 bg-white p-4" disabled={!!packagingError}>
+          <legend className="px-1 font-semibold">Embalaje para envíos</legend>
+          <p className="mb-3 text-sm text-gray-600">Elegí una caja y el peso total de una unidad lista para despachar, con caja y protección incluidas. Cada unidad se cotiza como un paquete separado.</p>
+          {packagingError && <p role="alert" className="mb-3 text-sm text-red-600">{packagingError}</p>}
+          <label htmlFor="shipping-box" className="text-sm">Caja</label>
+          <select id="shipping-box" className="mb-3 mt-1 w-full rounded border p-2" {...register('shippingBoxId')}>
+            <option value="">Sin configurar</option>
+            {boxes.filter((box) => box.isActive || box.id === product.shippingPackage?.boxId).map((box) => <option key={box.id} value={box.id}>{box.name} · {box.lengthCm} × {box.widthCm} × {box.heightCm} cm{box.isActive ? '' : ' (inactiva)'}</option>)}
+            {packagingError && product.shippingPackage && <option value={product.shippingPackage.boxId}>Embalaje actual</option>}
+          </select>
+          <label htmlFor="packed-weight" className="text-sm">Peso del paquete completo (g)</label>
+          <input id="packed-weight" type="number" min={10} max={10000000} step={1} className="mt-1 w-full rounded border p-2" {...register('packedWeightGrams', { required: !!watch('shippingBoxId') })} />
+          <p className="mt-2 text-xs text-gray-500">Ejemplo: si la caja con el producto pesa 500 g, ingresá 500. No se suma otra vez el peso vacío.</p>
+          <Link href="/admin/packaging" className="mt-3 inline-block text-sm text-primary underline">Administrar cajas y embalajes</Link>
+        </fieldset>
         {/* Título */}
         <div className="flex flex-col mb-2">
           <span>Título *</span>
