@@ -51,7 +51,7 @@ export const LoginForm = () => {
         ¿Olvidaste tu contraseña?
       </Link>
 
-      <div className="flex h-8 items-end space-x-1" aria-live="polite" aria-atomic="true">
+      <div className="flex min-h-8 items-end space-x-1" aria-live="polite" aria-atomic="true">
         { state === 'CredentialsSignin' && (
           <div className="flex flex-row mb-2">
             <IoInformationOutline className="h-5 w-5 text-red-500" />
@@ -62,6 +62,12 @@ export const LoginForm = () => {
           <div className="flex flex-row mb-2">
             <IoInformationOutline className="h-5 w-5 text-red-500" />
             <p className="text-sm text-red-500">Demasiados intentos. Esperá un momento e intentá de nuevo.</p>
+          </div>
+        ) }
+        { state === 'AuthUnavailable' && (
+          <div className="flex flex-row mb-2">
+            <IoInformationOutline className="h-5 w-5 shrink-0 text-red-500" />
+            <p className="text-sm text-red-500">No pudimos iniciar sesión en este momento. Esperá un minuto y volvé a intentar.</p>
           </div>
         ) }
       </div>
