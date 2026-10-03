@@ -4,6 +4,7 @@
 import { AuthError } from '@auth/core/errors';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { signIn } from '@/auth.config';
+import { getLoginFailure } from '@/lib/login-error';
 
 export async function authenticate(
   prevState: string | undefined,
@@ -18,13 +19,10 @@ export async function authenticate(
     return 'Success';
 
   } catch (error) {
-    if (
-      (error as any)?.message === 'RateLimitExceeded' ||
-      (error as any)?.cause?.message === 'RateLimitExceeded'
-    ) return 'RateLimit';
-    if (error instanceof AuthError || (error as any)?.type === 'CredentialsSignin' || (error as any)?.message === 'CredentialsSignin') {
-      return 'CredentialsSignin';
-    }
+    if (isRedirectError(error)) throw error;
+    const failure = getLoginFailure(error);
+    if (failure) return failure;
+    if (error instanceof AuthError) return 'AuthUnavailable';
     throw error;
   }
 }
